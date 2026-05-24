@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JULION Web UI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">JULION</p>
+          <h1>Local Web Interface</h1>
+          <p class="lead">Preview the Julion UI locally while the CLI remains the engine.</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="card card-primary">
+          <h2>Step 1: Login</h2>
+          <p>Use the web login flow to authenticate your Google Drive account for snapshot upload.</p>
+          <div class="button-row">
+            <a class="button" href="/auth-google">Login via Julion website</a>
+          </div>
+        </section>
+
+        <section class="card card-secondary">
+          <h2>Step 2: Snapshot Actions</h2>
+          <p>After login, use the CLI command to create and upload snapshots.</p>
+          <pre class="code-block">npm run start --auth --google --website
+npm run start -- save --ultra --push --repository my-repo</pre>
+        </section>
+
+        <section class="card card-grid">
+          <article>
+            <h3>Project status</h3>
+            <p>Monitor the local preview and CLI interaction design.</p>
+          </article>
+          <article>
+            <h3>Tech design</h3>
+            <p>Structured, simple, and built to be extended into a full browser UI.</p>
+          </article>
+          <article>
+            <h3>Local preview</h3>
+            <p>Launch this page at <strong>http://localhost:3000</strong>.</p>
+          </article>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>JULION local UI preview — not yet production-ready, but ready to inspect.</p>
+      </footer>
+    </div>
+  </body>
+</html>

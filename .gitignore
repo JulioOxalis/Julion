@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vscode/
+.idea/
+.DS_Store
+*.log
+*.on
+.env
+vendor/
+node_modules/
+.git/

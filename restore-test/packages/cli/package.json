@@ -1,0 +1,19 @@
+{
+  "name": "julion-cli",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "julion-core": "file:../core",
+    "julion-engine-snapshot": "file:../engine/snapshot",
+    "julion-engine-restore": "file:../engine/restore",
+    "julion-cloud-google-drive": "file:../cloud/google-drive",
+    "julion-adapters": "file:../adapters/index"
+  }
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JULION Website Login</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">JULION</p>
+          <h1>Website Login</h1>
+          <p class="lead">This is the local website auth preview for Julion.</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="card card-primary">
+          <h2>Google login placeholder</h2>
+          <p>In a real deployment, this page would redirect to Google OAuth and then write the token to MySQL.</p>
+          <div class="button-row">
+            <button class="button" onclick="document.getElementById('status').textContent = 'Waiting for CLI...';">Simulate login</button>
+          </div>
+          <p id="status" class="status-text">Open the CLI and run authentication with the website flow.</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>JULION website auth mock page.</p>
+      </footer>
+    </div>
+  </body>
+</html>
