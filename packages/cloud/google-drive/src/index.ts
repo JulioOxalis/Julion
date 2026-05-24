@@ -260,7 +260,7 @@ async function loadToken() {
 
   return readJson(TOKEN_PATH);
 }
-Replace your-google-client-secret with the actual secret from Google Cloud.
+
 async function loadTokenFromDbOnly() {
   const db = await getDbConnection();
   if (!db) {
