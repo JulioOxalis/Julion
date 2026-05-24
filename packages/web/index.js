@@ -9,6 +9,8 @@ const {
   resolvePublicBaseUrl,
   createAuthSession,
   completeAuthSession,
+  claimAuthSession,
+  getAuthSessionStatus,
   upsertUser,
   saveUserDriveToken,
   deleteUserDriveToken,
@@ -65,6 +67,44 @@ app.use(
     }
   })
 );
+
+app.get('/api/auth/session/:sessionId', async (req, res) => {
+  const sessionId = String(req.params.sessionId || '').trim();
+  if (!sessionId || sessionId.length > 64) {
+    return res.status(400).json({ status: 'invalid', message: 'Invalid session id.' });
+  }
+
+  const projectRoot = path.join(__dirname, '..', '..');
+  try {
+    const status = await getAuthSessionStatus(sessionId, projectRoot);
+    if (status === 'pending') {
+      return res.status(202).json({ status: 'pending' });
+    }
+    if (status === 'complete') {
+      const claimed = await claimAuthSession(sessionId, projectRoot);
+      if (!claimed) {
+        return res.status(202).json({ status: 'pending' });
+      }
+      return res.json({
+        status: 'complete',
+        sessionId: claimed.sessionId,
+        token: claimed.token,
+        user_email: claimed.user_email,
+        user_name: claimed.user_name,
+        user_picture: claimed.user_picture
+      });
+    }
+    if (status === 'claimed') {
+      return res.status(410).json({ status: 'claimed', message: 'Session already used.' });
+    }
+    return res.status(404).json({ status: status === 'expired' ? 'expired' : 'missing' });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Auth session lookup failed.'
+    });
+  }
+});
 
 app.get('/api/status', async (req, res) => {
   const env = await getEnv();

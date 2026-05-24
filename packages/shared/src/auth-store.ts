@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import mysql, { Connection, RowDataPacket } from 'mysql2/promise';
-import { loadMergedEnv } from './env';
+import { loadMergedEnv, resolvePublicBaseUrl } from './env';
 
 export interface DatabaseConfig {
   host: string;
@@ -31,6 +31,7 @@ interface SessionRow extends RowDataPacket {
   user_email: string | null;
   user_name: string | null;
   user_picture: string | null;
+  expires_at: Date | string;
 }
 
 const SESSION_TTL_MINUTES = 15;
@@ -204,6 +205,77 @@ export async function completeAuthSession(
   }
 }
 
+export async function claimAuthSession(sessionId: string, startDir?: string): Promise<AuthSessionResult | null> {
+  const connection = await getDbConnection(startDir);
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute<SessionRow[]>(
+      `SELECT session_id, status, token_json, user_email, user_name, user_picture
+       FROM julion_auth_sessions
+       WHERE session_id = ? AND status = 'complete' AND expires_at > NOW()
+       LIMIT 1
+       FOR UPDATE`,
+      [sessionId]
+    );
+    const row = rows[0];
+    if (!row || !row.token_json || !row.user_email) {
+      await connection.rollback();
+      return null;
+    }
+
+    await connection.execute(
+      `UPDATE julion_auth_sessions SET status = 'claimed' WHERE session_id = ?`,
+      [sessionId]
+    );
+    await connection.commit();
+
+    return {
+      sessionId: row.session_id,
+      token: JSON.parse(row.token_json) as Record<string, unknown>,
+      user_email: row.user_email,
+      user_name: row.user_name || row.user_email,
+      user_picture: row.user_picture || undefined
+    };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+export async function getAuthSessionStatus(
+  sessionId: string,
+  startDir?: string
+): Promise<'pending' | 'complete' | 'claimed' | 'missing' | 'expired'> {
+  const connection = await getDbConnection(startDir);
+  try {
+    const [rows] = await connection.execute<SessionRow[]>(
+      `SELECT status, expires_at
+       FROM julion_auth_sessions
+       WHERE session_id = ?
+       LIMIT 1`,
+      [sessionId]
+    );
+    const row = rows[0];
+    if (!row) {
+      return 'missing';
+    }
+    if (row.status === 'claimed') {
+      return 'claimed';
+    }
+    if (new Date(row.expires_at) <= new Date()) {
+      return 'expired';
+    }
+    if (row.status === 'complete') {
+      return 'complete';
+    }
+    return 'pending';
+  } finally {
+    await connection.end();
+  }
+}
+
 export async function getAuthSession(sessionId: string, startDir?: string): Promise<AuthSessionResult | null> {
   const connection = await getDbConnection(startDir);
   try {
@@ -236,18 +308,69 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function waitForAuthSessionHttp(
+  baseUrl: string,
+  sessionId: string,
+  timeoutMs: number
+): Promise<AuthSessionResult> {
+  const deadline = Date.now() + timeoutMs;
+  const endpoint = `${baseUrl.replace(/\/$/, '')}/api/auth/session/${encodeURIComponent(sessionId)}`;
+
+  while (Date.now() < deadline) {
+    const response = await fetch(endpoint, { method: 'GET' });
+    if (response.status === 202) {
+      await sleep(2000);
+      continue;
+    }
+    if (response.ok) {
+      const payload = (await response.json()) as AuthSessionResult;
+      if (payload?.token && payload?.user_email) {
+        return payload;
+      }
+    }
+    if (response.status === 410 || response.status === 404) {
+      throw new Error('Login session expired or not found. Run `julion auth google --website` again.');
+    }
+    await sleep(2000);
+  }
+
+  throw new Error('Timed out waiting for website login. Open the browser, sign in with Google, and try again.');
+}
+
 export async function waitForAuthSession(
   sessionId: string,
   timeoutMs = 180000,
   startDir?: string
 ): Promise<AuthSessionResult> {
+  const env = await loadMergedEnv(startDir);
+  const baseUrl = resolvePublicBaseUrl(env);
+
+  try {
+    return await waitForAuthSessionHttp(baseUrl, sessionId, timeoutMs);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const canUseDatabase =
+      message.includes('fetch failed') ||
+      message.includes('ECONNREFUSED') ||
+      message.includes('ENOTFOUND');
+
+    if (!canUseDatabase) {
+      throw error;
+    }
+  }
+
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const result = await getAuthSession(sessionId, startDir);
+    const result = await claimAuthSession(sessionId, startDir);
     if (result) {
       return result;
     }
+    const status = await getAuthSessionStatus(sessionId, startDir);
+    if (status === 'claimed' || status === 'expired' || status === 'missing') {
+      break;
+    }
     await sleep(2000);
   }
+
   throw new Error('Timed out waiting for website login. Open the browser, sign in with Google, and try again.');
 }
