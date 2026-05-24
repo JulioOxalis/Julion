@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "Google Drive adapter for Julion CLI authentication and file sync.",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "googleapis": "^172.0.0",
-    "mysql2": "^3.6.0",
-    "julion-core": "^0.1.0"
+    "julion-core": "^0.1.0",
+    "julion-shared": "^0.1.0"
   },
   "publishConfig": {
     "access": "public"

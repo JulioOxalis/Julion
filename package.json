@@ -12,6 +12,7 @@
     "bootstrap": "npm install",
     "build": "npm run build --workspaces --if-present",
     "start": "npm run start --workspaces",
+    "web": "npm run start -w julion-web",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces"
   },

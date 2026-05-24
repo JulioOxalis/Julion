@@ -1,23 +1,32 @@
-import { createReadStream, createWriteStream, promises as fs, statSync } from 'fs';
+import { createReadStream, createWriteStream, promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 import readline from 'readline';
 import { exec } from 'child_process';
 import { google } from 'googleapis';
-import mysql, { Connection } from 'mysql2/promise';
 import type { OAuth2Client } from 'google-auth-library';
+import {
+  createAuthSession,
+  createSessionId,
+  deleteUserDriveToken,
+  loadUserDriveToken,
+  saveUserDriveToken,
+  waitForAuthSession,
+  GOOGLE_DRIVE_SCOPES,
+  loadGoogleClientConfig,
+  resolveWebsiteAuthUrl,
+  loadMergedEnv
+} from 'julion-shared';
 
-const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 const STORAGE_DIR = path.join(os.homedir(), '.julion');
 const TOKEN_PATH = path.join(STORAGE_DIR, 'google-drive-token.json');
-const CREDENTIALS_PATH = path.join(STORAGE_DIR, 'google-client.json');
 const ROOT_FOLDER_NAME = 'JULION';
 
-const BUILT_IN_GOOGLE_CLIENT = {
-  clientId: '',
-  clientSecret: '',
-  redirectUri: 'urn:ietf:wg:oauth:2.0:oob'
-};
+interface StoredTokenFile {
+  token?: Record<string, unknown>;
+  user_email?: string;
+  user_name?: string;
+}
 
 async function readJson(filePath: string) {
   try {
@@ -28,124 +37,17 @@ async function readJson(filePath: string) {
   }
 }
 
-function parseDotEnv(content: string) {
-  const result: Record<string, string> = {};
-  for (const line of content.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) {
-      continue;
-    }
-    const equalsIndex = trimmed.indexOf('=');
-    if (equalsIndex === -1) {
-      continue;
-    }
-    const key = trimmed.slice(0, equalsIndex).trim();
-    let value = trimmed.slice(equalsIndex + 1).trim();
-    if (value.startsWith('"') && value.endsWith('"')) {
-      value = value.slice(1, -1);
-    } else if (value.startsWith("'") && value.endsWith("'")) {
-      value = value.slice(1, -1);
-    }
-    result[key] = value;
-  }
-  return result;
-}
-
-function findDotEnvPath(startDir: string) {
-  let currentDir = startDir;
-  while (true) {
-    const candidate = path.join(currentDir, '.env');
-    try {
-      if (statSync(candidate).isFile()) {
-        return candidate;
-      }
-    } catch {
-      // ignore missing files
-    }
-
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      break;
-    }
-    currentDir = parentDir;
-  }
-  return null;
-}
-
-interface MySqlConfig {
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  database: string;
-}
-
-async function loadDotEnvFile() {
-  const envPath = findDotEnvPath(process.cwd());
-  if (!envPath) {
-    return null;
-  }
-
-  try {
-    const raw = await fs.readFile(envPath, 'utf8');
-    return parseDotEnv(raw);
-  } catch {
-    return null;
-  }
-}
-
-async function loadDatabaseConfig() {
-  const envFile = await loadDotEnvFile();
-  const env = { ...process.env, ...(envFile ?? {}) } as Record<string, string>;
-  const host = env.DB_HOST || env.MYSQL_HOST || 'localhost';
-  const user = env.DB_USER || env.MYSQL_USER;
-  const password = env.DB_PASSWORD || env.MYSQL_PASSWORD;
-  const database = env.DB_DATABASE || env.MYSQL_DATABASE || 'Julion';
-  const port = env.DB_PORT ? Number(env.DB_PORT) : 3306;
-
-  if (!user || !password) {
-    return null;
-  }
-
-  return { host, port, user, password, database } as MySqlConfig;
-}
-
-async function getDbConnection(): Promise<Connection | null> {
-  const config = await loadDatabaseConfig();
-  if (!config) {
-    return null;
-  }
-
-  try {
-    const connection = await mysql.createConnection(config);
-    await ensureAuthTable(connection);
-    return connection;
-  } catch (error) {
-    console.warn('MySQL auth store unavailable:', error instanceof Error ? error.message : error);
-    return null;
-  }
-}
-
-async function ensureAuthTable(connection: Connection) {
-  await connection.execute(`
-    CREATE TABLE IF NOT EXISTS julion_auth_tokens (
-      provider VARCHAR(64) PRIMARY KEY,
-      token_json LONGTEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-  `);
-}
-
 async function ensureStorageDirectory() {
   await fs.mkdir(STORAGE_DIR, { recursive: true });
 }
 
 function openUrl(url: string) {
   const platform = process.platform;
-  const command = platform === 'win32' ? `start "" "${url}"` : platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+  const command =
+    platform === 'win32' ? `start "" "${url}"` : platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
   exec(command, (error) => {
     if (error) {
-      console.warn('Unable to open browser automatically, please copy the URL and open it manually.');
+      console.warn('Unable to open browser automatically. Copy the URL and open it manually.');
     }
   });
 }
@@ -160,149 +62,54 @@ function prompt(question: string): Promise<string> {
   });
 }
 
-async function loadClientCredentials() {
-  const envClientId = process.env.GOOGLE_CLIENT_ID;
-  const envClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  let envRedirectUri = process.env.GOOGLE_REDIRECT_URI;
-
-  if (!envClientId || !envClientSecret) {
-    const envFile = await loadDotEnvFile();
-    if (envFile) {
-      Object.assign(process.env, envFile);
-    }
-  }
-
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  envRedirectUri = process.env.GOOGLE_REDIRECT_URI || envRedirectUri;
-
-  if (clientId && clientSecret) {
-    return {
-      clientId,
-      clientSecret,
-      redirectUri: envRedirectUri || 'urn:ietf:wg:oauth:2.0:oob'
-    };
-  }
-
-  const credentials = await readJson(CREDENTIALS_PATH);
-  if (credentials) {
-    const payload = credentials.installed ?? credentials.web;
-    if (payload) {
-      return {
-        clientId: payload.client_id,
-        clientSecret: payload.client_secret,
-        redirectUri: payload.redirect_uris?.[0] || envRedirectUri || 'urn:ietf:wg:oauth:2.0:oob'
-      };
-    }
-  }
-
-  if (BUILT_IN_GOOGLE_CLIENT.clientId && BUILT_IN_GOOGLE_CLIENT.clientSecret) {
-    return BUILT_IN_GOOGLE_CLIENT;
-  }
-  if (!credentials) {
-    throw new Error(
-      'Google client credentials not found. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, place credentials in a .env file, or create a file at ~/.julion/google-client.json.'
-    );
-  }
-
-  const payload = credentials.installed ?? credentials.web;
-  if (!payload) {
-    throw new Error('Invalid Google client credentials format. Expected installed or web credentials.');
-  }
-
-  return {
-    clientId: payload.client_id,
-    clientSecret: payload.client_secret,
-    redirectUri: payload.redirect_uris?.[0] || 'urn:ietf:wg:oauth:2.0:oob'
-  };
-}
-
-async function saveToken(token: unknown) {
-  const payload = JSON.stringify(token, null, 2);
-  await ensureStorageDirectory();
-
-  const db = await getDbConnection();
-  if (db) {
-    try {
-      await db.execute(
-        `INSERT INTO julion_auth_tokens (provider, token_json)
-         VALUES (?, ?)
-         ON DUPLICATE KEY UPDATE token_json = VALUES(token_json), created_at = CURRENT_TIMESTAMP`,
-        ['google_drive', payload]
-      );
-    } finally {
-      await db.end();
-    }
-  }
-
-  await fs.writeFile(TOKEN_PATH, payload, 'utf8');
-}
-
-async function loadToken() {
-  const db = await getDbConnection();
-  if (db) {
-    try {
-      const [rows] = await db.execute<any[]>(
-        'SELECT token_json FROM julion_auth_tokens WHERE provider = ?',
-        ['google_drive']
-      );
-      if (Array.isArray(rows) && rows.length > 0 && rows[0].token_json) {
-        try {
-          return JSON.parse(rows[0].token_json);
-        } catch {
-          // fall back to file
-        }
-      }
-    } finally {
-      await db.end();
-    }
-  }
-
-  return readJson(TOKEN_PATH);
-}
-
-async function loadTokenFromDbOnly() {
-  const db = await getDbConnection();
-  if (!db) {
+function normalizeStoredToken(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object') {
     return null;
   }
-
-  try {
-    const [rows] = await db.execute<any[]>(
-      'SELECT token_json FROM julion_auth_tokens WHERE provider = ?',
-      ['google_drive']
-    );
-    if (Array.isArray(rows) && rows.length > 0 && rows[0].token_json) {
-      try {
-        return JSON.parse(rows[0].token_json);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  } finally {
-    await db.end();
+  const payload = raw as StoredTokenFile & Record<string, unknown>;
+  if (payload.token && typeof payload.token === 'object') {
+    return payload.token as Record<string, unknown>;
   }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForWebsiteToken(timeoutMs = 180000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const token = await loadTokenFromDbOnly();
-    if (token) {
-      return token;
-    }
-    await sleep(2000);
+  if (payload.access_token || payload.refresh_token) {
+    return payload as Record<string, unknown>;
   }
   return null;
 }
 
+async function saveToken(token: unknown, user?: { email: string; name?: string }) {
+  await ensureStorageDirectory();
+  const payload: StoredTokenFile = {
+    token: token as Record<string, unknown>,
+    user_email: user?.email,
+    user_name: user?.name
+  };
+  await fs.writeFile(TOKEN_PATH, JSON.stringify(payload, null, 2), 'utf8');
+
+  if (user?.email) {
+    await saveUserDriveToken(user.email, token);
+  }
+}
+
+async function loadToken(): Promise<Record<string, unknown> | null> {
+  const filePayload = await readJson(TOKEN_PATH);
+  const fromFile = normalizeStoredToken(filePayload);
+  if (fromFile) {
+    return fromFile;
+  }
+
+  const userEmail = (filePayload as StoredTokenFile | null)?.user_email;
+  if (userEmail) {
+    const fromDb = await loadUserDriveToken(userEmail);
+    if (fromDb) {
+      return fromDb;
+    }
+  }
+
+  return null;
+}
+
 async function getOAuthClient(): Promise<OAuth2Client> {
-  const { clientId, clientSecret, redirectUri } = await loadClientCredentials();
+  const { clientId, clientSecret, redirectUri } = await loadGoogleClientConfig();
   const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 
   const token = await loadToken();
@@ -311,7 +118,7 @@ async function getOAuthClient(): Promise<OAuth2Client> {
     return auth;
   }
 
-  throw new Error('No stored Google Drive credentials found. Run `julion auth google` first.');
+  throw new Error('No stored Google Drive credentials found. Run `julion auth google --website` first.');
 }
 
 async function getDrive() {
@@ -360,11 +167,11 @@ async function getOrCreateFolder(drive: any, name: string, parentId?: string) {
 }
 
 export async function authenticate() {
-  const { clientId, clientSecret, redirectUri } = await loadClientCredentials();
+  const { clientId, clientSecret, redirectUri } = await loadGoogleClientConfig();
   const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
   const authUrl = auth.generateAuthUrl({
     access_type: 'offline',
-    scope: SCOPES,
+    scope: GOOGLE_DRIVE_SCOPES,
     prompt: 'consent'
   });
 
@@ -375,36 +182,40 @@ export async function authenticate() {
   const code = await prompt('Paste the authorization code here: ');
   const tokenResponse = await auth.getToken(code);
   auth.setCredentials(tokenResponse.tokens);
-  await saveToken(tokenResponse.tokens);
 
-  console.log('Google Drive authorization complete. Token saved to', TOKEN_PATH);
+  const oauth2 = google.oauth2({ version: 'v2', auth });
+  const profile = await oauth2.userinfo.get();
+  const email = profile.data.email || 'unknown@user.local';
+  const name = profile.data.name || email;
+
+  await saveToken(tokenResponse.tokens, { email, name });
+  console.log(`Google Drive authorization complete for ${email}.`);
 }
 
 export async function authenticateViaWebsite() {
-  const authUrl =
-    process.env.JULION_WEBSITE_AUTH_URL || process.env.JULION_AUTH_URL || process.env.JULION_SITE_URL;
+  const env = await loadMergedEnv();
+  const sessionId = createSessionId();
+  await createAuthSession(sessionId);
 
-  if (!authUrl) {
-    throw new Error(
-      'Website auth URL is not configured. Set JULION_WEBSITE_AUTH_URL in your environment or .env file.'
-    );
-  }
+  const baseUrl = resolveWebsiteAuthUrl(env);
+  const url = new URL(baseUrl);
+  url.searchParams.set('session', sessionId);
 
-  console.log('Opening your Julion website login page...');
-  console.log(authUrl);
-  openUrl(authUrl);
-  console.log('After signing in on the website, the site should write your Google Drive auth token into the Julion MySQL database.');
-  console.log('Waiting for website-issued auth token...');
+  console.log('Step 1: Opening your Julion login page in the browser...');
+  console.log(url.toString());
+  openUrl(url.toString());
+  console.log('');
+  console.log('Step 2: Sign in with Google and approve Drive access.');
+  console.log('Step 3: When the page says you can return to VS Code, come back here.');
+  console.log('');
+  console.log('Waiting for login to complete...');
 
-  const token = await waitForWebsiteToken();
-  if (!token) {
-    throw new Error(
-      'No website-issued Google Drive auth token was found in MySQL. Complete the login on the website and try again.'
-    );
-  }
+  const result = await waitForAuthSession(sessionId);
+  await saveToken(result.token, { email: result.user_email, name: result.user_name });
 
-  await saveToken(token);
-  console.log('Website-issued Google Drive auth token loaded and saved.');
+  console.log(`Logged in as ${result.user_name} (${result.user_email}).`);
+  console.log('Google Drive is ready. You can now run:');
+  console.log('  julion save --ultra --push --repository my-repo');
 }
 
 export async function uploadSnapshot(snapshotPath: string, repositoryName?: string) {
@@ -444,10 +255,7 @@ export async function downloadSnapshot(snapshotName: string, downloadPath: strin
     folderId = await getOrCreateFolder(drive, repositoryName, rootFolderId);
   }
 
-  const queryParts = [
-    `name='${escapeQueryValue(snapshotName)}'`,
-    'trashed=false'
-  ];
+  const queryParts = [`name='${escapeQueryValue(snapshotName)}'`, 'trashed=false'];
 
   if (repositoryName) {
     queryParts.push(`'${folderId}' in parents`);
@@ -477,8 +285,8 @@ export async function downloadSnapshot(snapshotName: string, downloadPath: strin
   const stream = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' });
 
   await new Promise<void>((resolve, reject) => {
-    (stream.data as any)
-      .on('end', resolve)
+    (stream.data as NodeJS.ReadableStream)
+      .on('end', () => resolve())
       .on('error', reject)
       .pipe(dest);
   });
@@ -489,3 +297,5 @@ export async function downloadSnapshot(snapshotName: string, downloadPath: strin
     downloadedTo: downloadPath
   };
 }
+
+export { deleteUserDriveToken };

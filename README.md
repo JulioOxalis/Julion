@@ -36,29 +36,39 @@ node packages/cli/dist/index.js save --out my-project.on
 node packages/cli/dist/index.js restore my-project.on ./restore-target --force
 ```
 
-5. Authenticate with Google Drive:
+5. Configure environment variables (copy `.env.example` to `.env`):
+
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI` (site root, e.g. `https://julion.julio.co.tz`)
+- `JULION_SITE_URL` and `JULION_WEBSITE_AUTH_URL`
+- MySQL: `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`
+
+In Google Cloud Console, add this authorized redirect URI:
+
+`https://your-domain/auth/google/callback`
+
+6. Start the Julion website (login + dashboard):
 
 ```bash
-node packages/cli/dist/index.js auth google
+npm run build
+npm run web
 ```
 
-Google Drive credentials can be provided via environment variables:
+7. Authenticate from VS Code / CLI via the website:
 
 ```bash
-export GOOGLE_CLIENT_ID="your-client-id"
-export GOOGLE_CLIENT_SECRET="your-client-secret"
-export GOOGLE_REDIRECT_URI="your-redirect-uri"
+node packages/cli/dist/index.js auth google --website
 ```
 
-or saved in `~/.julion/google-client.json`.
+The CLI opens your browser, you sign in with Google, and the token is stored in MySQL for the CLI to use.
 
-6. Push a snapshot to Google Drive:
+8. Push a snapshot to Google Drive:
 
 ```bash
 node packages/cli/dist/index.js push my-project.on my-repo
 ```
 
-7. Pull a snapshot from Google Drive:
+9. Pull a snapshot from Google Drive:
 
 ```bash
 node packages/cli/dist/index.js pull my-repo my-project.on -o downloaded.on

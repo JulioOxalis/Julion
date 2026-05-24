@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mysql2": "^3.6.0"
+  },
   "publishConfig": {
     "access": "public"
   },
