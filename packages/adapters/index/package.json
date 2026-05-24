@@ -1,13 +1,26 @@
 {
   "name": "julion-adapters",
   "version": "0.1.0",
-  "private": true,
+  "description": "Adapter registry for Julion CLI plugins and storage backends.",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "julion-core": "file:../../core"
-  }
+    "julion-core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JulioOxalis/Julion.git",
+    "directory": "packages/adapters/index"
+  },
+  "bugs": {
+    "url": "https://github.com/JulioOxalis/Julion/issues"
+  },
+  "homepage": "https://github.com/JulioOxalis/Julion#readme",
+  "license": "MIT"
 }

@@ -1,7 +1,7 @@
 {
   "name": "julion-cloud-google-drive",
   "version": "0.1.0",
-  "private": true,
+  "description": "Google Drive adapter for Julion CLI authentication and file sync.",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
@@ -10,6 +10,19 @@
   "dependencies": {
     "googleapis": "^172.0.0",
     "mysql2": "^3.6.0",
-    "julion-core": "file:../../core"
-  }
+    "julion-core": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JulioOxalis/Julion.git",
+    "directory": "packages/cloud/google-drive"
+  },
+  "bugs": {
+    "url": "https://github.com/JulioOxalis/Julion/issues"
+  },
+  "homepage": "https://github.com/JulioOxalis/Julion#readme",
+  "license": "MIT"
 }

@@ -1,11 +1,24 @@
 {
   "name": "julion-shared",
   "version": "0.1.0",
-  "private": true,
+  "description": "Shared utility types and helpers for Julion engine packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JulioOxalis/Julion.git",
+    "directory": "packages/shared"
+  },
+  "bugs": {
+    "url": "https://github.com/JulioOxalis/Julion/issues"
+  },
+  "homepage": "https://github.com/JulioOxalis/Julion#readme",
+  "license": "MIT"
 }

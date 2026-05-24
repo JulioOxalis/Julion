@@ -1,19 +1,35 @@
 {
   "name": "julion-cli",
   "version": "0.1.0",
-  "private": true,
+  "description": "Julion CLI for project snapshots, restore, and cloud sync.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "julion": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "commander": "^11.0.0",
-    "julion-core": "file:../core",
-    "julion-engine-snapshot": "file:../engine/snapshot",
-    "julion-engine-restore": "file:../engine/restore",
-    "julion-cloud-google-drive": "file:../cloud/google-drive",
-    "julion-adapters": "file:../adapters/index"
-  }
+    "julion-core": "^0.1.0",
+    "julion-engine-snapshot": "^0.1.0",
+    "julion-engine-restore": "^0.1.0",
+    "julion-cloud-google-drive": "^0.1.0",
+    "julion-adapters": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JulioOxalis/Julion.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/JulioOxalis/Julion/issues"
+  },
+  "homepage": "https://github.com/JulioOxalis/Julion#readme",
+  "license": "MIT"
 }

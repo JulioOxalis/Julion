@@ -1,11 +1,24 @@
 {
   "name": "julion-core",
   "version": "0.1.0",
-  "private": true,
+  "description": "Core shared utilities for the Julion workspace.",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JulioOxalis/Julion.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/JulioOxalis/Julion/issues"
+  },
+  "homepage": "https://github.com/JulioOxalis/Julion#readme",
+  "license": "MIT"
 }
