@@ -27,13 +27,13 @@ npm run build
 3. Create a snapshot from the current project root:
 
 ```bash
-node packages/cli/dist/index.js save --out my-project.on
+node packages/cli/dist/index.js seal --out my-project.on
 ```
 
 4. Restore a snapshot:
 
 ```bash
-node packages/cli/dist/index.js restore my-project.on ./restore-target --force
+node packages/cli/dist/index.js unseal my-project.on ./restore-target --force
 ```
 
 5. Configure environment variables (copy `.env.example` to `.env`):
@@ -57,21 +57,21 @@ npm run web
 7. Authenticate from VS Code / CLI via the website:
 
 ```bash
-node packages/cli/dist/index.js auth google --website
+node packages/cli/dist/index.js connect google --website
 ```
 
 The CLI opens your browser, you sign in with Google, and the token is stored in MySQL for the CLI to use.
 
-8. Push a snapshot to Google Drive:
+8. Deposit a snapshot to Google Drive:
 
 ```bash
-node packages/cli/dist/index.js push my-project.on my-repo
+node packages/cli/dist/index.js deposit my-project.on my-repo
 ```
 
-9. Pull a snapshot from Google Drive:
+9. Fetch a snapshot from Google Drive:
 
 ```bash
-node packages/cli/dist/index.js pull my-repo my-project.on -o downloaded.on
+node packages/cli/dist/index.js fetch my-repo my-project.on -o downloaded.on
 ```
 
 ## Workspace layout
@@ -85,7 +85,7 @@ node packages/cli/dist/index.js pull my-repo my-project.on -o downloaded.on
 
 ## Next steps
 
-- implement `julion init`
-- implement `julion save`
+- implement `julion begin`
+- implement `julion seal`
 - implement `.on` format serialization
 - implement Google Drive auth and upload

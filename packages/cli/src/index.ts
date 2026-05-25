@@ -13,20 +13,20 @@ program
   .version('0.1.0');
 
 program
-  .command('init')
+  .command('begin')
   .description('Initialize JULION in the current project')
   .action(() => {
-    console.log('julion init: scaffolding project metadata');
+    console.log('julion begin: scaffolding project metadata');
   });
 
 program
-  .command('save')
+  .command('seal')
   .description('Create a .on snapshot for the current project')
   .option('--ultra', 'Run the full ultra pipeline')
   .option('-o, --out <path>', 'Output .on snapshot path')
-  .option('--push', 'Upload the snapshot to Google Drive after creation')
+  .option('--deposit', 'Upload the snapshot to Google Drive after creation')
   .option('--repository <name>', 'Drive repository folder name')
-  .action(async (options: { ultra?: boolean; out?: string; push?: boolean; repository?: string }) => {
+  .action(async (options: { ultra?: boolean; out?: string; deposit?: boolean; repository?: string }) => {
     const projectRoot = process.cwd();
     const output = options.out || path.join(projectRoot, `${path.basename(projectRoot)}.on`);
 
@@ -36,7 +36,7 @@ program
         const adapterName = (adapter as any)?.adapterName || 'generic';
         const result = await saveUltra(projectRoot, {
           outputPath: output,
-          push: !!options.push,
+          push: !!options.deposit,
           repository: options.repository
         });
 
@@ -63,7 +63,7 @@ program
   });
 
 program
-  .command('restore')
+  .command('unseal')
   .description('Restore a .on snapshot into a target folder')
   .argument('<snapshot>', 'Path to the .on snapshot file')
   .argument('[target]', 'Target restore directory')
@@ -82,7 +82,7 @@ program
   });
 
 program
-  .command('push')
+  .command('deposit')
   .description('Upload a .on snapshot to Google Drive')
   .argument('<snapshot>', 'Path to the .on snapshot file')
   .argument('[repository]', 'Drive repository folder name')
@@ -97,7 +97,7 @@ program
   });
 
 program
-  .command('pull')
+  .command('fetch')
   .description('Download a .on snapshot from Google Drive')
   .argument('<repository>', 'Drive repository folder name')
   .argument('<snapshot>', 'Name of the snapshot file to download')
@@ -115,7 +115,7 @@ program
   });
 
 program
-  .command('auth')
+  .command('connect')
   .description('Authenticate with cloud providers')
   .argument('<provider>', 'provider name')
   .option('--website', 'Authenticate through the Julion website login flow')

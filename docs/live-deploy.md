@@ -60,8 +60,8 @@ They **do not** need your server MySQL credentials on their laptop.
 
 ```bash
 npm run build
-node packages/cli/dist/index.js auth google --website
-node packages/cli/dist/index.js save --ultra --push --repository my-repo
+node packages/cli/dist/index.js connect google --website
+node packages/cli/dist/index.js seal --ultra --deposit --repository my-repo
 ```
 
 ## SFTP note
