@@ -1,4 +1,8 @@
 import { MongoClient } from "mongodb";
+import dns from "dns";
+
+// Node.js on Windows fails querySrv via its own resolver — force OS resolver
+dns.setDefaultResultOrder("ipv4first");
 
 const uri = process.env.MONGODB_URI;
 

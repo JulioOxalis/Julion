@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod",
+    "dev": "node --env-file=.env tools/dev-server.js",
     "seed": "node --env-file=.env tools/seed.js",
     "migrate": "node --env-file=.env tools/migrate.js",
     "admin": "node --env-file=.env tools/admin.js"

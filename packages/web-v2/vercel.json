@@ -1,10 +1,13 @@
 {
   "version": 2,
+  "framework": null,
+  "outputDirectory": "public",
+  "buildCommand": "",
   "rewrites": [
-    { "source": "/dashboard",     "destination": "/pages/dashboard.html" },
-    { "source": "/repositories",  "destination": "/pages/repositories.html" },
-    { "source": "/repository",    "destination": "/pages/repository.html" },
-    { "source": "/auth-complete", "destination": "/pages/auth-complete.html" }
+    { "source": "/dashboard",    "destination": "/pages/dashboard.html" },
+    { "source": "/repositories", "destination": "/pages/repositories.html" },
+    { "source": "/repository",   "destination": "/pages/repository.html" },
+    { "source": "/auth-complete","destination": "/pages/auth-complete.html" }
   ],
   "headers": [
     {
@@ -14,22 +17,6 @@
         { "key": "X-Frame-Options",        "value": "DENY" },
         { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
-    },
-    {
-      "source": "/images/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
-      ]
-    },
-    {
-      "source": "/styles.css",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
-      ]
     }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/pages/404.html", "status": 404 }
   ]
 }
