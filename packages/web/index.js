@@ -120,8 +120,17 @@ function isBinaryExtension(filename) {
 
 // ─── HTML layouts ─────────────────────────────────────────────────────────────
 
-function publicLayout({ title, description, path: urlPath = '/', robots = 'index, follow, max-image-preview:large', keywords } = {}, body) {
+function publicLayout({ title, description, path: urlPath = '/', robots = 'index, follow, max-image-preview:large', keywords, landing = false } = {}, body) {
   const head = buildHead({ baseUrl: siteBaseUrl, title, description, path: urlPath, robots, keywords });
+  if (landing) {
+    return `<!doctype html>
+<html lang="en">
+<head>
+${head}
+</head>
+<body class="lp-body">${body}</body>
+</html>`;
+  }
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -349,40 +358,123 @@ app.get('/sitemap.xml', (req, res) => {
 
 app.get('/', async (req, res) => {
   if (req.session?.user?.email) return res.redirect('/dashboard');
-  const baseUrl = siteBaseUrl;
+  const year = new Date().getFullYear();
   res.send(publicLayout(
     {
       title:       'Seal, Store & Restore Your Projects',
       description: 'Julion lets you snapshot your entire project into a portable .on container, store it on Google Drive, and restore it anywhere with one command.',
       path:        '/',
-      keywords:    'Julion, project snapshot, developer CLI, Google Drive backup, seal restore, portable code'
+      keywords:    'Julion, project snapshot, developer CLI, Google Drive backup, seal restore, portable code',
+      landing:     true
     },
     `
-    <header class="app-header">
-      <div>
-        <p class="eyebrow">JULION</p>
-        <h1>Seal, Store &amp; Restore Your Projects</h1>
-        <p class="lead">Snapshot your entire project into a portable <code>.on</code> container, store it on Google Drive, and restore it anywhere with one command.</p>
-      </div>
-    </header>
-    <main>
-      <section class="card card-primary" aria-labelledby="gs-heading">
-        <h2 id="gs-heading">Get started</h2>
-        <p>Use the website login when the CLI opens your browser, or sign in below.</p>
-        <div class="button-row">
-          <a class="button" href="/auth/google" aria-label="Sign in to Julion with Google">Sign in with Google</a>
-        </div>
-      </section>
-      <section class="card card-secondary" aria-labelledby="cli-heading">
-        <h2 id="cli-heading">CLI flow</h2>
-        <pre class="code-block" aria-label="CLI commands">julion connect google --website
-julion seal --ultra --deposit --repository my-repo</pre>
-        <p class="status-text">Site: ${esc(baseUrl)}</p>
-      </section>
-    </main>
-    <footer class="app-footer" role="contentinfo">
-      <p>Julion &copy; ${new Date().getFullYear()} &middot; <a href="/sitemap.xml">Sitemap</a> &middot; <a href="/robots.txt">Robots</a></p>
-    </footer>
+<!-- ── Navbar ── -->
+<nav class="lp-nav" role="navigation" aria-label="Main">
+  <a class="lp-nav-brand" href="/">JULION</a>
+  <ul class="lp-nav-links" role="list">
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="https://github.com/JulioOxalis/julion" rel="noopener">GitHub</a></li>
+  </ul>
+  <a class="lp-nav-cta" href="/auth/google">Sign in</a>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="lp-hero" id="hero" aria-labelledby="hero-heading">
+  <div class="lp-eyebrow">Developer-native snapshot platform</div>
+  <h1 class="lp-headline" id="hero-heading">
+    Seal, Store &amp; Restore<br><span>Any Project. Anywhere.</span>
+  </h1>
+  <p class="lp-sub">Compress your entire codebase into a portable <strong>.on</strong> container, push it to Google Drive, and restore it on any machine with a single command.</p>
+  <a class="lp-hero-cta" href="/auth/google" aria-label="Get started with Julion">
+    Get started free
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</section>
+
+<!-- ── Flow diagram ── -->
+<section class="lp-diagram" id="how-it-works" aria-label="How Julion works">
+  <svg class="lp-diagram-svg" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow: Your Project seals into .on, then restores Anywhere">
+
+    <!-- Left column: inputs -->
+    <g>
+      <rect x="0" y="40"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="80" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Node.js project</text>
+
+      <rect x="0" y="96"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="80" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Python app</text>
+
+      <rect x="0" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="80" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Any codebase</text>
+
+      <text x="80" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">YOUR PROJECT</text>
+    </g>
+
+    <!-- Curved lines from left → center -->
+    <path d="M160 58 C260 58, 280 120, 360 120"  stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <path d="M160 114 C240 114, 280 120, 360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <path d="M160 170 C260 170, 280 120, 360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+
+    <!-- Center box -->
+    <rect x="360" y="88" width="160" height="64" rx="16" fill="#6b7bff"/>
+    <text x="440" y="117" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="17" font-weight="800" fill="#fff">.on</text>
+    <text x="440" y="137" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.72)" letter-spacing="1">Seals · Stores · Restores</text>
+
+    <!-- Curved lines center → right -->
+    <path d="M520 120 C600 120, 620 58, 720 58"  stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <path d="M520 120 C600 120, 620 114, 720 114" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+    <path d="M520 120 C600 120, 620 170, 720 170" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+
+    <!-- Right column: outputs -->
+    <g>
+      <rect x="720" y="40"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="800" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Your laptop</text>
+
+      <rect x="720" y="96"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="800" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Team server</text>
+
+      <rect x="720" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+      <text x="800" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">CI / cloud VM</text>
+
+      <text x="800" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">ANYWHERE</text>
+    </g>
+  </svg>
+</section>
+
+<!-- ── Feature cards ── -->
+<section class="lp-features" id="features" aria-labelledby="features-heading">
+  <h2 class="lp-features-heading" id="features-heading">Everything you need, nothing you don't</h2>
+  <div class="lp-cards">
+    <div class="lp-card">
+      <div class="lp-card-icon" aria-hidden="true">&#x1F4E6;</div>
+      <h3 class="lp-card-title">julion seal</h3>
+      <p class="lp-card-desc">Compress your entire project — files, metadata, checksums — into a single portable <code>.on</code> container in seconds.</p>
+      <span class="lp-card-arrow">&#x2192; Snapshot in one command</span>
+    </div>
+    <div class="lp-card">
+      <div class="lp-card-icon" aria-hidden="true">&#x2601;&#xFE0F;</div>
+      <h3 class="lp-card-title">julion deposit</h3>
+      <p class="lp-card-desc">Push your snapshot to Google Drive automatically. Organised under your JULION folder by repository and version.</p>
+      <span class="lp-card-arrow">&#x2192; Backed up to Drive</span>
+    </div>
+    <div class="lp-card">
+      <div class="lp-card-icon" aria-hidden="true">&#x1F504;</div>
+      <h3 class="lp-card-title">julion unseal</h3>
+      <p class="lp-card-desc">Restore any snapshot to any directory on any machine. Full file tree, exact checksums, zero dependencies beyond the CLI.</p>
+      <span class="lp-card-arrow">&#x2192; Restore anywhere</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="lp-footer" role="contentinfo">
+  <span>Julion &copy; ${year}</span>
+  <div class="lp-footer-links">
+    <a href="/sitemap.xml">Sitemap</a>
+    <a href="/robots.txt">Robots</a>
+    <a href="https://github.com/JulioOxalis/julion" rel="noopener">GitHub</a>
+  </div>
+</footer>
     `
   ));
 });
@@ -418,25 +510,33 @@ app.get('/dashboard', requireLogin, async (req, res) => {
     `
     <div class="page-header">
       <h1 class="page-title">Overview</h1>
+      <p class="page-subtitle">Welcome back, ${esc(user.name ? user.name.split(' ')[0] : user.email)}</p>
     </div>
     <div class="overview-grid">
-      <div class="info-card">
+      <div class="info-card info-card-highlight">
         <div class="profile-row">
           ${avatarImg}
           <div>
-            <h2>${esc(user.name || user.email)}</h2>
-            <p class="status-text">${esc(user.email)}</p>
+            <h2 style="font-size:1.1rem;font-weight:700;margin:0 0 4px">${esc(user.name || user.email)}</h2>
+            <p class="status-text" style="margin:0;font-size:0.82rem">${esc(user.email)}</p>
           </div>
         </div>
       </div>
       <div class="info-card">
         <h3 class="card-label">Google Drive</h3>
-        ${driveSection}
+        ${driveConnected
+          ? `<p class="dash-stat-num">${repoCount}</p>
+             <p class="stat-detail"><span class="badge badge-green">Connected</span>
+             &nbsp;<a class="inline-link" href="/repositories">${repoCount === 1 ? '1 repository' : repoCount + ' repositories'} &rarr;</a></p>`
+          : `<p><span class="badge">Not connected</span> Link your Drive to start depositing snapshots.</p>
+             <div class="button-row"><a class="button" href="/auth/google">Connect Google Drive</a></div>`}
       </div>
       <div class="info-card">
         <h3 class="card-label">Quick commands</h3>
-        <pre class="code-block">julion seal --ultra --deposit --repository my-repo
-julion fetch my-repo my-project.on -o out.on</pre>
+        <div class="dash-quick-cmd">
+          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion seal --ultra --deposit --repository my-repo</div>
+          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion fetch my-repo snapshot.on -o ./out</div>
+        </div>
       </div>
     </div>
     `
