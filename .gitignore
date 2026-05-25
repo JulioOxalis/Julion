@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Un-ignore julion-shared dist — it is a hand-written JS file, not a build artifact
+!packages/shared/dist/
+!packages/shared/dist/**
 .vscode/
 .idea/
 .DS_Store
