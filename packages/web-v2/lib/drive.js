@@ -16,28 +16,43 @@ export const DRIVE_SCOPES = [
   "profile",
 ];
 
-export async function getDriveForUser(userEmail) {
-  const db = (await clientPromise).db(process.env.DB_NAME);
-  const tokenDoc = await db.collection("user_tokens").findOne({ userEmail });
-  if (!tokenDoc?.tokenJson) throw new Error("no_token");
+export async function getDriveForUser(userEmail, driveTokenJson = null) {
+  let tokenJson = driveTokenJson;
 
-  const auth = getGoogleOAuthClient();
-  const token = JSON.parse(tokenDoc.tokenJson);
+  if (!tokenJson) {
+    // Fallback: read from MongoDB (old sessions without embedded token)
+    try {
+      const db = (await clientPromise).db(process.env.DB_NAME);
+      const doc = await db.collection("user_tokens").findOne({ userEmail });
+      tokenJson = doc?.tokenJson || null;
+    } catch { /* MongoDB unavailable */ }
+  }
+
+  if (!tokenJson) throw new Error("no_token");
+
+  const auth  = getGoogleOAuthClient();
+  const token = JSON.parse(tokenJson);
   auth.setCredentials(token);
 
-  // Persist refreshed tokens automatically
+  // Best-effort: save refreshed tokens back to MongoDB when they arrive
   auth.on("tokens", async (refreshed) => {
-    const merged = { ...token, ...refreshed };
-    await db
-      .collection("user_tokens")
-      .updateOne(
+    const merged = JSON.stringify({ ...token, ...refreshed });
+    try {
+      const db = (await clientPromise).db(process.env.DB_NAME);
+      await db.collection("user_tokens").updateOne(
         { userEmail },
-        { $set: { tokenJson: JSON.stringify(merged), updatedAt: new Date() } }
-      )
-      .catch(() => {});
+        { $set: { tokenJson: merged, updatedAt: new Date() } }
+      );
+    } catch { /* non-fatal */ }
   });
 
   return google.drive({ version: "v3", auth });
+}
+
+// Pass the JWT user payload directly — reads driveToken from it, no MongoDB needed
+export function getDriveForJWT(user) {
+  if (!user) throw new Error("no_token");
+  return getDriveForUser(user.email, user.driveToken || null);
 }
 
 export async function getJulionRoot(drive) {

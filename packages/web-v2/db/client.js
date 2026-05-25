@@ -15,16 +15,16 @@ if (!uri) {
 
 let clientPromise;
 
+const MONGO_OPTS = { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000 };
+
 if (process.env.NODE_ENV !== "production") {
-  // In development, reuse the client across hot-reloads
   if (!global._mongoClientPromise) {
-    const client = new MongoClient(uri);
+    const client = new MongoClient(uri, MONGO_OPTS);
     global._mongoClientPromise = client.connect();
   }
   clientPromise = global._mongoClientPromise;
 } else {
-  // In production, each function instance gets its own client
-  const client = new MongoClient(uri);
+  const client = new MongoClient(uri, MONGO_OPTS);
   clientPromise = client.connect();
 }
 

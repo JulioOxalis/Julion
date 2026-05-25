@@ -1,5 +1,5 @@
 import { requireAuth } from "../lib/auth.js";
-import { getDriveForUser, listSnapshots } from "../lib/drive.js";
+import { getDriveForJWT, listSnapshots } from "../lib/drive.js";
 
 function formatBytes(bytes) {
   const n = Number(bytes);
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const drive     = await getDriveForUser(user.email);
+    const drive     = await getDriveForJWT(user);
     const snapshots = await listSnapshots(drive, repo);
     return res.status(200).json({
       success: true,

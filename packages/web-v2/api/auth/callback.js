@@ -72,8 +72,13 @@ export default async function handler(req, res) {
       );
     }
 
-    // Issue JWT cookie and redirect to dashboard
-    const jwtToken = signToken({ email: user.email, name: user.name, picture: user.picture });
+    // Issue JWT cookie — embed Drive tokens so Drive ops never need MongoDB
+    const jwtToken = signToken({
+      email:      user.email,
+      name:       user.name,
+      picture:    user.picture,
+      driveToken: JSON.stringify(tokens),
+    });
     setAuthCookie(res, jwtToken);
     return res.redirect("/dashboard");
   } catch (err) {

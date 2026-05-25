@@ -1,5 +1,5 @@
 import { requireAuth } from "../lib/auth.js";
-import { getDriveForUser, listRepositories, listSnapshots } from "../lib/drive.js";
+import { getDriveForJWT, listRepositories, listSnapshots } from "../lib/drive.js";
 
 function fmtBytes(bytes) {
   const n = Number(bytes);
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   if (!user) return;
 
   try {
-    const drive = await getDriveForUser(user.email);
+    const drive = await getDriveForJWT(user);
     const repos = await listRepositories(drive);
 
     // Fetch snapshots from up to 6 repos in parallel

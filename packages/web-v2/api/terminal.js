@@ -1,6 +1,6 @@
 import { promises as fsPromises } from "fs";
 import { requireAuth } from "../lib/auth.js";
-import { getDriveForUser, listRepositories, listSnapshots } from "../lib/drive.js";
+import { getDriveForJWT, listRepositories, listSnapshots } from "../lib/drive.js";
 import { downloadDriveFile, readOnArchive } from "../lib/archive.js";
 
 function fmtBytes(bytes) {
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
 
   let tmp1 = null, tmp2 = null;
   try {
-    const drive = await getDriveForUser(user.email);
+    const drive = await getDriveForJWT(user);
 
     // ls
     if (command === "ls") {

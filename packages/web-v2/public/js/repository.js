@@ -2,14 +2,15 @@ import { requireUser, esc, formatBytes, formatDate, renderSidebar, showError } f
 
 const params   = new URLSearchParams(location.search);
 const repoName = params.get("repo");
-const snapName = params.get("snapshot");
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let allSnapshots   = [];  // for compare dropdown
-let currentFile    = null;
-let monacoEditor   = null;
-let monacoLoaded   = false;
-let treeData       = null; // { files, checksums, manifest, ... }
+let allSnapshots = [];
+let currentSnap  = params.get("snapshot") || null;
+let treeData     = null;
+let currentPath  = "";
+let monacoEditor = null;
+let monacoLoaded = false;
+let currentFile  = null;
 
 // ── File icons ────────────────────────────────────────────────────────────────
 const EXT_ICONS = {
@@ -45,45 +46,58 @@ function detectLang(filename) {
 
 const BINARY_RE = /\.(png|jpg|jpeg|gif|ico|webp|bmp|pdf|zip|tar|gz|7z|rar|exe|dll|wasm|mp3|mp4|wav|ogg|ttf|woff|woff2)$/i;
 
-// ── Tree builder ──────────────────────────────────────────────────────────────
-function buildTree(files) {
-  const root = {};
-  for (const path of files) {
-    const parts = path.split("/");
-    let node = root;
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!node[parts[i]]) node[parts[i]] = { __dir: true, __kids: {} };
-      node = node[parts[i]].__kids;
+// ── File table builder ────────────────────────────────────────────────────────
+function getItemsAtPath(files, path) {
+  const prefix = path ? path + "/" : "";
+  const entries = new Map();
+  for (const file of files) {
+    if (!file.startsWith(prefix)) continue;
+    const rest  = file.slice(prefix.length);
+    const slash = rest.indexOf("/");
+    if (slash === -1) {
+      if (!entries.has(rest)) entries.set(rest, { type: "file", fullPath: file });
+    } else {
+      const dirName = rest.slice(0, slash);
+      if (!entries.has(dirName)) entries.set(dirName, { type: "dir", name: dirName });
     }
-    const fname = parts[parts.length - 1];
-    node[fname] = { __dir: false, __path: path };
   }
-  return root;
+  return [...entries.entries()]
+    .sort(([an, av], [bn, bv]) => {
+      if (av.type !== bv.type) return av.type === "dir" ? -1 : 1;
+      return an.localeCompare(bn, undefined, { sensitivity: "base" });
+    })
+    .map(([name, info]) => ({ name, ...info }));
 }
 
-function renderTreeHTML(node, level = 0) {
-  const sorted = Object.entries(node).sort(([an, av], [bn, bv]) => {
-    if (av.__dir !== bv.__dir) return av.__dir ? -1 : 1;
-    return an.localeCompare(bn, undefined, { sensitivity: "base" });
-  });
-  return sorted.map(([name, item]) => {
-    const pl = (level * 14) + 8;
-    if (item.__dir) {
-      return `<div class="tree-folder">
-        <div class="tree-row tree-folder-hdr" style="padding-left:${pl}px">
-          <span class="tree-chevron">▸</span>
-          <span class="tree-icon">📁</span>
-          <span class="tree-label">${esc(name)}</span>
-        </div>
-        <div class="tree-children" hidden>${renderTreeHTML(item.__kids, level + 1)}</div>
-      </div>`;
-    }
-    return `<div class="tree-row tree-file" style="padding-left:${pl + 16}px"
-        data-file="${esc(item.__path)}" tabindex="0" role="button" aria-label="Open ${esc(name)}">
-      <span class="tree-icon">${fileIcon(name)}</span>
-      <span class="tree-label">${esc(name)}</span>
+function renderFileTable(files, checksums, path) {
+  const items = getItemsAtPath(files, path);
+  if (!items.length) return `<div class="gh-empty">No files in this directory.</div>`;
+  return items.map(item => {
+    const icon = item.type === "dir" ? "📁" : fileIcon(item.name);
+    const chk  = item.type === "file" && checksums[item.fullPath]
+      ? `<span class="gh-file-chk" title="${esc(checksums[item.fullPath])}">sha256</span>` : "";
+    return `<div class="gh-file-row gh-file-${item.type}"
+        data-name="${esc(item.name)}" data-type="${item.type}"
+        ${item.fullPath ? `data-file="${esc(item.fullPath)}"` : ""}
+        tabindex="0" role="button">
+      <span class="gh-file-icon">${icon}</span>
+      <span class="gh-file-name">${esc(item.name)}</span>
+      <span class="gh-file-meta">${chk}</span>
     </div>`;
   }).join("");
+}
+
+function renderPathBar(path) {
+  const parts = path ? path.split("/") : [];
+  const isLast = (i) => i === parts.length - 1;
+  let crumbs = `<span class="gh-path-crumb${parts.length ? "" : " gh-path-crumb-active"}" data-path="" role="button" tabindex="0">${esc(repoName)}</span>`;
+  let built = "";
+  parts.forEach((part, i) => {
+    built = built ? built + "/" + part : part;
+    const p = built;
+    crumbs += `<span class="gh-path-sep">/</span><span class="gh-path-crumb${isLast(i) ? " gh-path-crumb-active" : ""}" data-path="${esc(p)}" role="button" tabindex="0">${esc(part)}</span>`;
+  });
+  return crumbs;
 }
 
 // ── Monaco ────────────────────────────────────────────────────────────────────
@@ -107,37 +121,36 @@ async function openInMonaco(filename) {
   document.getElementById("editor-modal").classList.add("editor-open");
   document.getElementById("editor-save-btn").disabled = true;
   statusEl.textContent = "Loading…";
-
-  const res  = await fetch(`/api/files?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(snapName)}&file=${encodeURIComponent(filename)}`);
-  const json = await res.json();
-
-  if (!json.success || json.data.binary) {
-    statusEl.textContent = json.data?.binary ? "Binary file — cannot edit" : (json.error || "Error loading file");
-    return;
+  try {
+    const res  = await fetch(`/api/files?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}&file=${encodeURIComponent(filename)}`);
+    const json = await res.json();
+    if (!json.success || json.data.binary) {
+      statusEl.textContent = json.data?.binary ? "Binary file — cannot edit" : (json.error || "Error loading file");
+      return;
+    }
+    await loadMonaco();
+    currentFile = filename;
+    const container = document.getElementById("monaco-container");
+    if (monacoEditor) {
+      monacoEditor.getModel()?.dispose();
+      monacoEditor.setModel(monaco.editor.createModel(json.data.content, detectLang(filename)));
+    } else {
+      monacoEditor = monaco.editor.create(container, {
+        value: json.data.content,
+        language: detectLang(filename),
+        theme: "vs-dark",
+        fontSize: 13,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        automaticLayout: true,
+      });
+      monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
+    }
+    statusEl.textContent = "Ready";
+    document.getElementById("editor-save-btn").disabled = false;
+  } catch {
+    statusEl.textContent = "Failed to load file";
   }
-
-  await loadMonaco();
-  currentFile = filename;
-  const container = document.getElementById("monaco-container");
-
-  if (monacoEditor) {
-    monacoEditor.getModel()?.dispose();
-    monacoEditor.setModel(monaco.editor.createModel(json.data.content, detectLang(filename)));
-  } else {
-    monacoEditor = monaco.editor.create(container, {
-      value: json.data.content,
-      language: detectLang(filename),
-      theme: "vs-dark",
-      fontSize: 13,
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      automaticLayout: true,
-    });
-    monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
-  }
-
-  statusEl.textContent = "Ready";
-  document.getElementById("editor-save-btn").disabled = false;
 }
 
 function closeEditor() {
@@ -155,7 +168,7 @@ async function saveFile() {
     const res  = await fetch("/api/files", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repo: repoName, snapshot: snapName, file: currentFile, content: monacoEditor.getValue() }),
+      body: JSON.stringify({ repo: repoName, snapshot: currentSnap, file: currentFile, content: monacoEditor.getValue() }),
     });
     const json = await res.json();
     statusEl.textContent = json.success ? "Saved ✓" : ("Error: " + (json.error || "unknown"));
@@ -166,227 +179,206 @@ async function saveFile() {
   }
 }
 
-// ── File click handler ────────────────────────────────────────────────────────
-async function handleFileClick(filename) {
-  // Mark active
-  document.querySelectorAll(".tree-file").forEach(el => el.classList.remove("tree-file-active"));
-  document.querySelector(`.tree-file[data-file="${CSS.escape(filename)}"]`)?.classList.add("tree-file-active");
-
-  // README → render inline
-  if (/readme(\.(md|txt|rst))?$/i.test(filename.split("/").pop())) {
-    await renderReadmeInline(filename);
-    return;
-  }
-
-  // Binary → show message
-  if (BINARY_RE.test(filename)) {
-    setContentPane(`<div class="repo-welcome"><span style="font-size:2.5rem">🖼️</span><p>Binary file — cannot display <code>${esc(filename)}</code></p></div>`);
-    return;
-  }
-
-  // Text → Monaco
-  openInMonaco(filename);
-}
-
-async function renderReadmeInline(filename) {
-  const pane = document.getElementById("repo-content-pane");
-  pane.innerHTML = `<div style="padding:32px 36px;color:rgba(247,248,251,0.5);font-size:0.88rem">Loading ${esc(filename)}…</div>`;
-
-  try {
-    const res  = await fetch(`/api/files?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(snapName)}&file=${encodeURIComponent(filename)}`);
-    const json = await res.json();
-    if (!json.success || json.data.binary) {
-      pane.innerHTML = `<div class="repo-welcome"><p>Could not load ${esc(filename)}</p></div>`;
-      return;
-    }
-    const raw = json.data.content;
-    // Simple markdown-to-HTML (headings, code, bold, italic, lists)
-    const html = simpleMarkdown(raw);
-    pane.innerHTML = `<div class="readme-view">${html}</div>`;
-  } catch {
-    pane.innerHTML = `<div class="repo-welcome"><p>Failed to load file.</p></div>`;
-  }
-}
-
+// ── Markdown ──────────────────────────────────────────────────────────────────
 function simpleMarkdown(text) {
   return text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/^#{6}\s(.+)/gm, "<h6>$1</h6>")
-    .replace(/^#{5}\s(.+)/gm, "<h5>$1</h5>")
-    .replace(/^#{4}\s(.+)/gm, "<h4>$1</h4>")
-    .replace(/^###\s(.+)/gm, "<h3>$1</h3>")
-    .replace(/^##\s(.+)/gm,  "<h2>$1</h2>")
-    .replace(/^#\s(.+)/gm,   "<h1>$1</h1>")
+    .replace(/^#{6}\s(.+)/gm, "<h6>$1</h6>").replace(/^#{5}\s(.+)/gm, "<h5>$1</h5>")
+    .replace(/^#{4}\s(.+)/gm, "<h4>$1</h4>").replace(/^###\s(.+)/gm, "<h3>$1</h3>")
+    .replace(/^##\s(.+)/gm,  "<h2>$1</h2>").replace(/^#\s(.+)/gm,   "<h1>$1</h1>")
     .replace(/```[\w]*\n([\s\S]*?)```/gm, "<pre><code>$1</code></pre>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/__(.+?)__/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/_(.+?)_/g, "<em>$1</em>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/__(.+?)__/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>").replace(/_(.+?)_/g, "<em>$1</em>")
     .replace(/^\s*[-*+]\s+(.+)/gm, "<li>$1</li>")
     .replace(/(<li>[\s\S]+?<\/li>)/g, "<ul>$1</ul>")
     .replace(/\n\n/g, "</p><p>")
-    .replace(/^(?!<[hpuloc])/gm, "")
     .replace(/^(.+)$/gm, (m) => m.startsWith("<") ? m : `<p>${m}</p>`);
 }
 
-function setContentPane(html) {
-  const pane = document.getElementById("repo-content-pane");
-  if (pane) pane.innerHTML = html;
-}
-
-// ── Snapshot detail view ──────────────────────────────────────────────────────
-async function renderSnapshotDetail(main) {
-  // Show loading skeleton
-  main.classList.add("repo-snap-mode");
-  main.innerHTML = `<div style="padding:40px;color:rgba(247,248,251,0.4)">Loading snapshot…</div>`;
-
-  let treeRes, snapsRes;
-  try {
-    [treeRes, snapsRes] = await Promise.all([
-      fetch(`/api/snapshot?action=tree&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(snapName)}`).then(r => r.json()),
-      fetch(`/api/snapshots?repo=${encodeURIComponent(repoName)}`).then(r => r.json()),
-    ]);
-  } catch {
-    showError(main, "Network error loading snapshot.");
-    return;
-  }
-
-  if (!treeRes.success) { showError(main, treeRes.error || "Failed to load snapshot."); return; }
-
-  treeData     = treeRes.data;
-  allSnapshots = snapsRes.success ? snapsRes.data : [];
-
+// ── Main content render ───────────────────────────────────────────────────────
+function renderMainContent() {
   const { files, checksums, manifest, totalFiles, size, modifiedTime, readmeFile } = treeData;
-  const tree = buildTree(files);
+  const snapOpts = allSnapshots.map(s =>
+    `<option value="${esc(s.name)}" ${s.name === currentSnap ? "selected" : ""}>${esc(s.name)}</option>`
+  ).join("");
 
-  // Search filter state
-  let searchQuery = "";
+  const main = document.getElementById("repo-main");
+  main.style.cssText = "padding:0;overflow:hidden;display:flex;flex-direction:column;height:100vh";
 
   main.innerHTML = `
-    <div class="repo-snap-layout">
+    <div class="gh-repo-bar">
+      <div class="gh-repo-bar-left">
+        <a class="gh-back-link" href="/repositories">← Repositories</a>
+        <span class="gh-bar-sep">/</span>
+        <span class="gh-repo-name">${esc(repoName)}</span>
+      </div>
+      <div class="gh-repo-bar-right">
+        <div class="gh-snap-select-wrap">
+          <span class="gh-snap-label">Snapshot</span>
+          <select class="gh-snap-select" id="snap-selector">${snapOpts}</select>
+        </div>
+        <button class="gh-action-btn" id="verify-btn" title="Verify checksums">🔒 Verify</button>
+        <button class="gh-action-btn" id="compare-btn" title="Compare snapshots" ${allSnapshots.length < 2 ? "disabled" : ""}>⚡ Compare</button>
+        <button class="gh-action-btn gh-action-terminal" id="open-terminal-btn" title="Terminal (Ctrl+\`)">⌘</button>
+      </div>
+    </div>
 
-      <!-- Top bar -->
-      <div class="repo-snap-bar">
-        <a class="repo-snap-back" href="/repository?repo=${encodeURIComponent(repoName)}">← ${esc(repoName)}</a>
-        <span class="repo-snap-sep">/</span>
-        <span class="repo-snap-name">${esc(snapName)}</span>
-        <div class="repo-snap-meta-pills">
-          <span class="snap-pill">${totalFiles} files</span>
-          <span class="snap-pill">${formatBytes(size)}</span>
-          <span class="snap-pill">${formatDate(modifiedTime)}</span>
-          ${manifest.projectName ? `<span class="snap-pill snap-pill-accent">${esc(manifest.projectName)}</span>` : ""}
+    <div class="gh-repo-content" id="gh-repo-content">
+      <div class="gh-file-card" id="gh-file-card">
+        <div class="gh-file-card-header">
+          <div class="gh-path-bar" id="gh-path-bar">${renderPathBar("")}</div>
+          <div class="gh-snap-pills" id="gh-snap-pills">
+            <span class="gh-pill">${totalFiles} files</span>
+            <span class="gh-pill">${formatBytes(size)}</span>
+            <span class="gh-pill">${formatDate(modifiedTime)}</span>
+            ${manifest.projectName ? `<span class="gh-pill gh-pill-accent">${esc(manifest.projectName)}</span>` : ""}
+          </div>
         </div>
-        <div class="repo-snap-actions">
-          <button class="snap-action-btn" id="verify-btn" title="Verify file checksums">🔒 Verify</button>
-          <button class="snap-action-btn" id="compare-btn" title="Compare with another snapshot" ${allSnapshots.length < 2 ? "disabled" : ""}>⚡ Compare</button>
-          <button class="snap-action-btn snap-action-btn-terminal" id="open-terminal-btn" title="Open terminal (Ctrl+`)">⌘ Terminal</button>
-        </div>
+        <div class="gh-file-list" id="gh-file-list">${renderFileTable(files, checksums, "")}</div>
       </div>
 
-      <!-- Body: file tree + content pane -->
-      <div class="repo-snap-body">
-
-        <!-- File tree panel -->
-        <div class="repo-file-panel" id="repo-file-panel">
-          <div class="tree-search-wrap">
-            <input class="tree-search" id="tree-search" type="text" placeholder="Filter files…" autocomplete="off"/>
-          </div>
-          <div class="tree-container" id="tree-container">
-            ${renderTreeHTML(tree)}
-          </div>
+      <div class="gh-readme-card" id="gh-readme-card" ${!readmeFile ? "hidden" : ""}>
+        <div class="gh-readme-header">
+          <span class="gh-readme-icon">📝</span>
+          <span id="gh-readme-title">${readmeFile ? esc(readmeFile.split("/").pop()) : ""}</span>
         </div>
-
-        <!-- Content pane -->
-        <div class="repo-content-pane" id="repo-content-pane">
-          <div class="repo-welcome">
-            <div class="repo-welcome-icon">📦</div>
-            <h3>${esc(snapName)}</h3>
-            <p>${totalFiles} files · ${formatBytes(size)} · ${formatDate(modifiedTime)}</p>
-            <p class="repo-welcome-hint">Select a file from the tree to open it.<br/>
-              README files render inline. Code files open in the editor.</p>
-            ${readmeFile ? `<button class="snap-action-btn snap-action-btn-accent" id="open-readme-btn">📝 Open README</button>` : ""}
-          </div>
+        <div class="gh-readme-body" id="gh-readme-body">
+          <p style="color:rgba(247,248,251,0.4);padding:20px 28px">Loading README…</p>
         </div>
-
       </div>
     </div>`;
 
-  // Auto-load readme
-  if (readmeFile) {
-    document.getElementById("open-readme-btn")?.addEventListener("click", () => {
-      document.querySelector(`.tree-file[data-file="${CSS.escape(readmeFile)}"]`)?.scrollIntoView({ block: "nearest" });
-      handleFileClick(readmeFile);
-    });
-  }
-
-  // Tree search filter
-  document.getElementById("tree-search").addEventListener("input", (e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
-    filterTree(searchQuery, files, checksums);
+  // Snapshot selector
+  document.getElementById("snap-selector").addEventListener("change", async (e) => {
+    currentSnap = e.target.value;
+    currentPath = "";
+    const url = new URL(location.href);
+    url.searchParams.set("snapshot", currentSnap);
+    history.pushState(null, "", url.toString());
+    await switchSnapshot(currentSnap);
   });
 
-  wireTreeEvents();
-  wireActionButtons();
-}
-
-function filterTree(query, files, checksums) {
-  const container = document.getElementById("tree-container");
-  if (!query) {
-    container.innerHTML = renderTreeHTML(buildTree(files));
-    wireTreeEvents();
-    return;
-  }
-  const matched = files.filter(f => f.toLowerCase().includes(query));
-  if (!matched.length) {
-    container.innerHTML = `<p style="padding:12px 16px;color:rgba(247,248,251,0.35);font-size:0.82rem">No files match "${esc(query)}"</p>`;
-    return;
-  }
-  // Flat list when searching
-  container.innerHTML = matched.map(f => {
-    const parts = f.split("/");
-    const name  = parts[parts.length - 1];
-    return `<div class="tree-row tree-file tree-file-flat" data-file="${esc(f)}" tabindex="0" role="button">
-      <span class="tree-icon">${fileIcon(name)}</span>
-      <span class="tree-label">${esc(f)}</span>
-    </div>`;
-  }).join("");
-  wireTreeEvents();
-}
-
-function wireTreeEvents() {
-  // Folder toggle
-  document.querySelectorAll(".tree-folder-hdr").forEach(hdr => {
-    hdr.onclick = () => {
-      const folder   = hdr.closest(".tree-folder");
-      const children = folder.querySelector(".tree-children");
-      const chevron  = hdr.querySelector(".tree-chevron");
-      const icon     = hdr.querySelector(".tree-icon");
-      const isOpen   = !children.hidden;
-      children.hidden = isOpen;
-      chevron.textContent = isOpen ? "▸" : "▾";
-      icon.textContent    = isOpen ? "📁" : "📂";
-    };
+  // Path bar (event delegation)
+  document.getElementById("gh-path-bar").addEventListener("click", (e) => {
+    const crumb = e.target.closest(".gh-path-crumb");
+    if (crumb) navigateTo(crumb.dataset.path || "");
   });
-  // File click
-  document.querySelectorAll(".tree-file").forEach(el => {
-    el.onclick = () => handleFileClick(el.dataset.file);
-    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleFileClick(el.dataset.file); } };
-  });
-}
 
-function wireActionButtons() {
+  // File list (event delegation)
+  document.getElementById("gh-file-list").addEventListener("click", (e) => {
+    const row = e.target.closest(".gh-file-row");
+    if (!row) return;
+    if (row.dataset.type === "dir") {
+      navigateTo(currentPath ? currentPath + "/" + row.dataset.name : row.dataset.name);
+    } else if (row.dataset.file) {
+      handleFileOpen(row.dataset.file);
+    }
+  });
+
+  // Keyboard nav for file rows
+  document.getElementById("gh-file-list").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const row = e.target.closest(".gh-file-row");
+    if (!row) return;
+    e.preventDefault();
+    row.click();
+  });
+
   document.getElementById("verify-btn")?.addEventListener("click", openVerifyModal);
   document.getElementById("compare-btn")?.addEventListener("click", openCompareModal);
   document.getElementById("open-terminal-btn")?.addEventListener("click", toggleTerminal);
+
+  if (readmeFile) loadReadme(readmeFile);
+}
+
+function navigateTo(path) {
+  currentPath = path;
+  const { files, checksums, readmeFile } = treeData;
+  document.getElementById("gh-path-bar").innerHTML = renderPathBar(path);
+  document.getElementById("gh-file-list").innerHTML = renderFileTable(files, checksums, path);
+  // Re-wire path bar after innerHTML replace
+  document.getElementById("gh-path-bar").addEventListener("click", (e) => {
+    const crumb = e.target.closest(".gh-path-crumb");
+    if (crumb) navigateTo(crumb.dataset.path || "");
+  });
+  const readmeCard = document.getElementById("gh-readme-card");
+  if (readmeCard) readmeCard.hidden = (path !== "");
+}
+
+async function switchSnapshot(snapName) {
+  const fileCard = document.getElementById("gh-file-card");
+  if (fileCard) fileCard.style.opacity = "0.5";
+  try {
+    const res  = await fetch(`/api/snapshot?action=tree&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(snapName)}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || "Failed");
+    treeData = json.data;
+    const { files, checksums, manifest, totalFiles, size, modifiedTime, readmeFile } = treeData;
+    currentPath = "";
+    document.getElementById("gh-path-bar").innerHTML = renderPathBar("");
+    document.getElementById("gh-file-list").innerHTML = renderFileTable(files, checksums, "");
+    document.getElementById("gh-snap-pills").innerHTML = `
+      <span class="gh-pill">${totalFiles} files</span>
+      <span class="gh-pill">${formatBytes(size)}</span>
+      <span class="gh-pill">${formatDate(modifiedTime)}</span>
+      ${manifest.projectName ? `<span class="gh-pill gh-pill-accent">${esc(manifest.projectName)}</span>` : ""}`;
+    const readmeCard = document.getElementById("gh-readme-card");
+    if (readmeFile && readmeCard) {
+      readmeCard.hidden = false;
+      document.getElementById("gh-readme-title").textContent = readmeFile.split("/").pop();
+      document.getElementById("gh-readme-body").innerHTML = `<p style="color:rgba(247,248,251,0.4);padding:20px 28px">Loading README…</p>`;
+      loadReadme(readmeFile);
+    } else if (readmeCard) {
+      readmeCard.hidden = true;
+    }
+    document.getElementById("compare-btn").disabled = allSnapshots.length < 2;
+  } catch (err) {
+    showError(document.getElementById("repo-main"), err.message || "Failed to load snapshot.");
+  } finally {
+    if (fileCard) fileCard.style.opacity = "";
+  }
+}
+
+async function loadReadme(filename) {
+  const body = document.getElementById("gh-readme-body");
+  if (!body) return;
+  try {
+    const res  = await fetch(`/api/files?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}&file=${encodeURIComponent(filename)}`);
+    const json = await res.json();
+    if (!json.success || json.data.binary) {
+      body.innerHTML = `<p style="color:rgba(247,248,251,0.4);padding:20px 28px">Could not load README.</p>`;
+      return;
+    }
+    body.innerHTML = `<div class="readme-view">${simpleMarkdown(json.data.content)}</div>`;
+  } catch {
+    body.innerHTML = `<p style="color:rgba(247,248,251,0.4);padding:20px 28px">Failed to load README.</p>`;
+  }
+}
+
+function handleFileOpen(filename) {
+  if (BINARY_RE.test(filename)) {
+    const existing = document.getElementById("gh-binary-notice");
+    if (existing) existing.remove();
+    const notice = document.createElement("div");
+    notice.id = "gh-binary-notice";
+    notice.className = "gh-binary-notice";
+    notice.textContent = `Binary file — cannot display: ${filename}`;
+    document.getElementById("gh-file-card").appendChild(notice);
+    setTimeout(() => notice?.remove(), 3000);
+    return;
+  }
+  openInMonaco(filename);
 }
 
 // ── Compare modal ─────────────────────────────────────────────────────────────
 function openCompareModal() {
   const modal  = document.getElementById("compare-modal");
   const select = document.getElementById("compare-select");
-  const others = allSnapshots.filter(s => s.name !== snapName);
-  select.innerHTML = others.map(s => `<option value="${esc(s.name)}">${esc(s.name)} — ${s.sizeFormatted} — ${formatDate(s.modifiedTime)}</option>`).join("");
+  const others = allSnapshots.filter(s => s.name !== currentSnap);
+  select.innerHTML = others.map(s =>
+    `<option value="${esc(s.name)}">${esc(s.name)} — ${s.sizeFormatted} — ${formatDate(s.modifiedTime)}</option>`
+  ).join("");
   document.getElementById("compare-results").innerHTML = "";
   modal.hidden = false;
 }
@@ -399,7 +391,7 @@ document.getElementById("compare-run-btn").addEventListener("click", async () =>
   const results = document.getElementById("compare-results");
   results.innerHTML = `<p style="color:rgba(247,248,251,0.5)">Comparing…</p>`;
   try {
-    const res  = await fetch(`/api/snapshot?action=compare&repo=${encodeURIComponent(repoName)}&snapshot1=${encodeURIComponent(snapName)}&snapshot2=${encodeURIComponent(snap2)}`);
+    const res  = await fetch(`/api/snapshot?action=compare&repo=${encodeURIComponent(repoName)}&snapshot1=${encodeURIComponent(currentSnap)}&snapshot2=${encodeURIComponent(snap2)}`);
     const json = await res.json();
     if (!json.success) { results.innerHTML = `<p class="overlay-error">${esc(json.error)}</p>`; return; }
     const { added, removed, modified, unchanged, summary } = json.data;
@@ -410,9 +402,9 @@ document.getElementById("compare-run-btn").addEventListener("click", async () =>
         <span class="diff-badge diff-modified-badge">~${summary.modified} modified</span>
         <span class="diff-badge diff-unchanged-badge">${summary.unchanged} unchanged</span>
       </div>
-      ${added.length   ? `<div class="diff-group"><div class="diff-group-label diff-added-label">Added</div>${added.map(f=>`<div class="diff-item diff-item-added">+ ${esc(f)}</div>`).join("")}</div>` : ""}
-      ${removed.length ? `<div class="diff-group"><div class="diff-group-label diff-removed-label">Removed</div>${removed.map(f=>`<div class="diff-item diff-item-removed">- ${esc(f)}</div>`).join("")}</div>` : ""}
-      ${modified.length? `<div class="diff-group"><div class="diff-group-label diff-modified-label">Modified</div>${modified.map(f=>`<div class="diff-item diff-item-modified">~ ${esc(f)}</div>`).join("")}</div>` : ""}
+      ${added.length    ? `<div class="diff-group"><div class="diff-group-label diff-added-label">Added</div>${added.map(f=>`<div class="diff-item diff-item-added">+ ${esc(f)}</div>`).join("")}</div>` : ""}
+      ${removed.length  ? `<div class="diff-group"><div class="diff-group-label diff-removed-label">Removed</div>${removed.map(f=>`<div class="diff-item diff-item-removed">- ${esc(f)}</div>`).join("")}</div>` : ""}
+      ${modified.length ? `<div class="diff-group"><div class="diff-group-label diff-modified-label">Modified</div>${modified.map(f=>`<div class="diff-item diff-item-modified">~ ${esc(f)}</div>`).join("")}</div>` : ""}
       ${(!added.length && !removed.length && !modified.length) ? `<p style="color:#5dd8a0;margin-top:12px">✓ Snapshots are identical</p>` : ""}`;
   } catch {
     results.innerHTML = `<p class="overlay-error">Network error</p>`;
@@ -425,9 +417,8 @@ async function openVerifyModal() {
   const body  = document.getElementById("verify-body");
   modal.hidden = false;
   body.innerHTML = `<p class="overlay-modal-sub">Verifying checksums… this may take a moment.</p><div class="verify-spinner"></div>`;
-
   try {
-    const res  = await fetch(`/api/snapshot?action=verify&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(snapName)}`);
+    const res  = await fetch(`/api/snapshot?action=verify&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}`);
     const json = await res.json();
     if (!json.success) { body.innerHTML = `<p class="overlay-error">${esc(json.error)}</p>`; return; }
     const { results, summary, clean } = json.data;
@@ -463,48 +454,6 @@ document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "`") { e.preventDefault(); toggleTerminal(); }
 });
 
-// ── Repo overview (snapshot history) ─────────────────────────────────────────
-function renderRepoOverview(snapshots, main) {
-  if (!snapshots.length) {
-    main.innerHTML = `
-      <div class="page-header"><a class="back-link" href="/repositories">← Repositories</a><h1 class="page-title">${esc(repoName)}</h1></div>
-      <div class="empty-state">
-        <p>No snapshots in <strong>${esc(repoName)}</strong> yet.</p>
-        <p style="margin-top:10px"><code>julion seal --deposit --repository ${esc(repoName)}</code></p>
-      </div>`;
-    return;
-  }
-
-  const rows = snapshots.map((s, i) => `
-    <div class="commit-row">
-      <div class="commit-timeline">
-        <div class="commit-dot ${i === 0 ? "commit-dot-latest" : ""}"></div>
-        ${i < snapshots.length - 1 ? `<div class="commit-line"></div>` : ""}
-      </div>
-      <div class="commit-info">
-        <div class="commit-top">
-          <a class="commit-name" href="/repository?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(s.name)}">${esc(s.name)}</a>
-          ${i === 0 ? `<span class="commit-badge-latest">latest</span>` : ""}
-        </div>
-        <div class="commit-meta">
-          <span class="commit-size">${s.sizeFormatted}</span>
-          <span class="commit-date">${formatDate(s.modifiedTime)}</span>
-        </div>
-      </div>
-      <div class="commit-actions">
-        <a class="commit-btn" href="/repository?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(s.name)}">Open →</a>
-      </div>
-    </div>`).join("");
-
-  main.innerHTML = `
-    <div class="page-header" style="margin-bottom:28px">
-      <a class="back-link" href="/repositories">← Repositories</a>
-      <h1 class="page-title">${esc(repoName)}</h1>
-      <p class="page-subtitle">${snapshots.length} snapshot${snapshots.length !== 1 ? "s" : ""}</p>
-    </div>
-    <div class="commit-log">${rows}</div>`;
-}
-
 // ── Terminal ──────────────────────────────────────────────────────────────────
 function toggleTerminal() {
   const panel = document.getElementById("terminal-panel");
@@ -518,9 +467,7 @@ function initTerminal() {
   const output = document.getElementById("terminal-output");
   const input  = document.getElementById("terminal-input");
   if (!panel) return;
-
-  appendTermLine("Welcome to Julion Terminal — type \`help\` for available commands.", "info");
-
+  appendTermLine("Welcome to Julion Terminal — type `help` for available commands.", "info");
   input.addEventListener("keydown", async (e) => {
     if (e.key !== "Enter") return;
     const cmd = input.value.trim();
@@ -546,14 +493,11 @@ function initTerminal() {
       output.scrollTop = output.scrollHeight;
     }
   });
-
   document.getElementById("terminal-close-btn").addEventListener("click", () => {
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
   });
   document.getElementById("terminal-clear-btn").addEventListener("click", () => { output.innerHTML = ""; });
-
-  // Wire terminal toggle button in sidebar
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-action=toggle-terminal]")) toggleTerminal();
   });
@@ -572,27 +516,51 @@ function appendTermLine(text, type = "result") {
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function init() {
   if (!repoName) { window.location.href = "/repositories"; return; }
-
   const user = await requireUser();
   if (!user) return;
-
   document.getElementById("sidebar").innerHTML = renderSidebar(user, "repositories");
   initTerminal();
 
   const main = document.getElementById("repo-main");
+  main.innerHTML = `<div style="color:rgba(247,248,251,0.4);padding:40px;font-size:0.85rem">Loading…</div>`;
 
-  if (snapName) {
-    await renderSnapshotDetail(main);
-  } else {
-    main.style.padding = "40px 44px";
-    try {
-      const res  = await fetch(`/api/snapshots?repo=${encodeURIComponent(repoName)}`);
-      const json = await res.json();
-      if (!json.success) { showError(main, json.error || "Failed to load snapshots."); return; }
-      renderRepoOverview(json.data, main);
-    } catch {
-      showError(main, "Failed to load snapshots.");
+  try {
+    const snapsRes  = await fetch(`/api/snapshots?repo=${encodeURIComponent(repoName)}`);
+    const snapsJson = await snapsRes.json();
+    if (!snapsJson.success) { showError(main, snapsJson.error || "Failed to load snapshots."); return; }
+    allSnapshots = snapsJson.data;
+
+    if (!allSnapshots.length) {
+      main.style.padding = "40px 44px";
+      main.innerHTML = `
+        <div class="page-header" style="margin-bottom:28px">
+          <a class="back-link" href="/repositories">← Repositories</a>
+          <h1 class="page-title">${esc(repoName)}</h1>
+        </div>
+        <div class="empty-state">
+          <p>No snapshots in <strong>${esc(repoName)}</strong> yet.</p>
+          <p style="margin-top:10px;color:rgba(247,248,251,0.45)">Run: <code>julion seal --deposit --repository ${esc(repoName)}</code></p>
+        </div>`;
+      return;
     }
+
+    // Pick snapshot from URL or default to latest
+    currentSnap = (currentSnap && allSnapshots.some(s => s.name === currentSnap))
+      ? currentSnap
+      : allSnapshots[0].name;
+
+    const url = new URL(location.href);
+    url.searchParams.set("snapshot", currentSnap);
+    history.replaceState(null, "", url.toString());
+
+    const treeRes  = await fetch(`/api/snapshot?action=tree&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}`);
+    const treeJson = await treeRes.json();
+    if (!treeJson.success) { showError(main, treeJson.error || "Failed to load snapshot."); return; }
+    treeData = treeJson.data;
+
+    renderMainContent();
+  } catch (err) {
+    showError(main, err.message || "Failed to load repository.");
   }
 }
 

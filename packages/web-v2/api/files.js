@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { promises as fsPromises } from "fs";
 import { requireAuth } from "../lib/auth.js";
-import { getDriveForUser, listSnapshots } from "../lib/drive.js";
+import { getDriveForJWT, listSnapshots } from "../lib/drive.js";
 import { downloadDriveFile, readOnArchive, uploadDriveFile } from "../lib/archive.js";
 
 const BINARY_EXTS = new Set([
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
     let tmp = null;
     try {
-      const drive = await getDriveForUser(user.email);
+      const drive = await getDriveForJWT(user);
       const snaps = await listSnapshots(drive, repo);
       const snap  = snaps.find(s => s.name === snapshot);
       if (!snap) return res.status(404).json({ success: false, data: null, error: "Snapshot not found" });
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     let tmp = null;
     try {
-      const drive = await getDriveForUser(user.email);
+      const drive = await getDriveForJWT(user);
       const snaps = await listSnapshots(drive, repo);
       const snap  = snaps.find(s => s.name === snapshot);
       if (!snap) return res.status(404).json({ success: false, data: null, error: "Snapshot not found on Drive" });

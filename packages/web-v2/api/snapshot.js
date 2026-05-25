@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { promises as fsPromises } from "fs";
 import { requireAuth } from "../lib/auth.js";
-import { getDriveForUser, listSnapshots } from "../lib/drive.js";
+import { getDriveForJWT, listSnapshots } from "../lib/drive.js";
 import { downloadDriveFile, readOnArchive } from "../lib/archive.js";
 
 export default async function handler(req, res) {
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     if (!snapshot) return res.status(400).json({ success: false, data: null, error: "Missing snapshot" });
     let tmp = null;
     try {
-      const drive = await getDriveForUser(user.email);
+      const drive = await getDriveForJWT(user);
       const snaps = await listSnapshots(drive, repo);
       const snap  = snaps.find(s => s.name === snapshot);
       if (!snap) return res.status(404).json({ success: false, data: null, error: "Snapshot not found" });
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     if (!snapshot1 || !snapshot2) return res.status(400).json({ success: false, data: null, error: "Missing snapshot1 or snapshot2" });
     let tmp1 = null, tmp2 = null;
     try {
-      const drive = await getDriveForUser(user.email);
+      const drive = await getDriveForJWT(user);
       const snaps = await listSnapshots(drive, repo);
       const s1 = snaps.find(s => s.name === snapshot1);
       const s2 = snaps.find(s => s.name === snapshot2);
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     if (!snapshot) return res.status(400).json({ success: false, data: null, error: "Missing snapshot" });
     let tmp = null;
     try {
-      const drive = await getDriveForUser(user.email);
+      const drive = await getDriveForJWT(user);
       const snaps = await listSnapshots(drive, repo);
       const snap  = snaps.find(s => s.name === snapshot);
       if (!snap) return res.status(404).json({ success: false, data: null, error: "Snapshot not found" });

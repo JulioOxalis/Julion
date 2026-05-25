@@ -1,5 +1,5 @@
 import { requireAuth } from "../../lib/auth.js";
-import { getDriveForUser, listRepositories } from "../../lib/drive.js";
+import { getDriveForJWT, listRepositories } from "../../lib/drive.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!user) return;
 
   try {
-    const drive = await getDriveForUser(user.email);
+    const drive = await getDriveForJWT(user);
     const repos  = await listRepositories(drive);
     return res.status(200).json({
       success: true,
