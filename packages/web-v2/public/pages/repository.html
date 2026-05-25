@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Repository · Julion</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#6b7bff"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body class="dashboard-body">
+<div class="dashboard-layout">
+
+  <div id="sidebar"></div>
+
+  <main class="main-panel">
+    <a id="back-link" class="back-link" href="/repositories">&#8592; Repositories</a>
+    <div class="page-header" style="margin-bottom:20px">
+      <h1 class="page-title" id="page-title">Loading…</h1>
+    </div>
+    <div id="main-content">
+      <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ── Monaco editor modal ── -->
+<div class="editor-modal" id="editor-modal" role="dialog" aria-modal="true" aria-label="File editor">
+  <div class="editor-bar">
+    <div class="editor-bar-left">
+      <span class="editor-dot dot-red"   aria-hidden="true"></span>
+      <span class="editor-dot dot-yellow" aria-hidden="true"></span>
+      <span class="editor-dot dot-green"  aria-hidden="true"></span>
+      <span class="editor-path" id="editor-path"></span>
+    </div>
+    <div class="editor-bar-right">
+      <span class="editor-status" id="editor-status"></span>
+      <button class="editor-save-btn" id="editor-save-btn" type="button" disabled>Save &amp; Push to Drive</button>
+      <button class="editor-close-btn" id="editor-close-btn" type="button" aria-label="Close editor">&#x2715;</button>
+    </div>
+  </div>
+  <div id="monaco-container"></div>
+</div>
+
+<script type="module" src="/js/repository.js"></script>
+</body>
+</html>

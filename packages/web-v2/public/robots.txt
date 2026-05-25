@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Authenticated / private sections
+Disallow: /dashboard
+Disallow: /repositories
+Disallow: /repository
+Disallow: /api/
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,83 @@
+import { google } from "googleapis";
+import { getGoogleOAuthClient } from "../../lib/drive.js";
+import { signToken, setAuthCookie } from "../../lib/auth.js";
+import clientPromise from "../../db/client.js";
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ success: false, data: null, error: "Method not allowed" });
+  }
+
+  const { code, state } = req.query;
+  if (!code) {
+    return res.status(400).json({ success: false, data: null, error: "Missing code parameter" });
+  }
+
+  let statePayload = {};
+  try {
+    statePayload = JSON.parse(Buffer.from(state || "", "base64url").toString("utf8"));
+  } catch { /* state is optional */ }
+
+  try {
+    // Exchange code for tokens
+    const auth = getGoogleOAuthClient();
+    const { tokens } = await auth.getToken(code);
+    auth.setCredentials(tokens);
+
+    // Fetch Google user info
+    const oauth2 = google.oauth2({ version: "v2", auth });
+    const { data: gUser } = await oauth2.userinfo.get();
+    if (!gUser.email) {
+      return res.status(400).json({ success: false, data: null, error: "No email from Google" });
+    }
+
+    const user = {
+      email:   gUser.email,
+      name:    gUser.name || gUser.email,
+      picture: gUser.picture || null,
+    };
+
+    const db = (await clientPromise).db(process.env.DB_NAME);
+
+    // Upsert user
+    await db.collection("users").updateOne(
+      { email: user.email },
+      {
+        $set:         { name: user.name, picture: user.picture, lastLoginAt: new Date() },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
+
+    // Save Drive tokens
+    await db.collection("user_tokens").updateOne(
+      { userEmail: user.email },
+      { $set: { tokenJson: JSON.stringify(tokens), updatedAt: new Date() } },
+      { upsert: true }
+    );
+
+    // Complete a pending CLI session if one was attached to this OAuth flow
+    if (statePayload.cliSession) {
+      await db.collection("auth_sessions").updateOne(
+        { sessionId: statePayload.cliSession, status: "pending" },
+        {
+          $set: {
+            status:      "complete",
+            tokenJson:   JSON.stringify(tokens),
+            userEmail:   user.email,
+            userName:    user.name,
+            userPicture: user.picture,
+          },
+        }
+      );
+    }
+
+    // Issue JWT cookie and redirect to dashboard
+    const jwtToken = signToken({ email: user.email, name: user.name, picture: user.picture });
+    setAuthCookie(res, jwtToken);
+    return res.redirect("/dashboard");
+  } catch (err) {
+    console.error("[auth/callback]", err);
+    return res.status(500).json({ success: false, data: null, error: "Authentication failed" });
+  }
+}

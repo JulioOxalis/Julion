@@ -1,0 +1,21 @@
+{
+  "name": "julion-web-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "seed": "node --env-file=.env tools/seed.js",
+    "admin": "node --env-file=.env tools/admin.js"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0",
+    "googleapis": "^172.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0"
+  },
+  "devDependencies": {
+    "vercel": "^37.0.0"
+  }
+}

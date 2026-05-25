@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Repositories · Julion</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#6b7bff"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body class="dashboard-body">
+<div class="dashboard-layout">
+
+  <div id="sidebar"></div>
+
+  <main class="main-panel" id="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Repositories</h1>
+      <p class="page-subtitle">Your .on snapshots stored on Google Drive</p>
+    </div>
+
+    <div id="repo-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Repository</th>
+            <th>Last Modified</th>
+          </tr>
+        </thead>
+        <tbody id="repo-tbody">
+          <tr><td colspan="2" class="empty-cell">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+</div>
+<script type="module" src="/js/repositories.js"></script>
+</body>
+</html>

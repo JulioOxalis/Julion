@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Overview · Julion</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#6b7bff"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body class="dashboard-body">
+<div class="dashboard-layout">
+
+  <!-- Sidebar injected by JS -->
+  <div id="sidebar"></div>
+
+  <main class="main-panel" id="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Overview</h1>
+      <p class="page-subtitle" id="page-subtitle">Loading…</p>
+    </div>
+
+    <div class="overview-grid">
+      <!-- Profile card -->
+      <div class="info-card info-card-highlight" id="profile-card">
+        <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
+      </div>
+
+      <!-- Drive / repos card -->
+      <div class="info-card" id="drive-card">
+        <h3 class="card-label">Google Drive</h3>
+        <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
+      </div>
+
+      <!-- Quick commands card -->
+      <div class="info-card">
+        <h3 class="card-label">Quick commands</h3>
+        <div class="dash-quick-cmd">
+          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion seal --ultra --deposit --repository my-repo</div>
+          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion fetch my-repo snapshot.on -o ./out</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+<script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>
