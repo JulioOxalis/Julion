@@ -132,11 +132,11 @@
   <ul class="hp-nav-links" id="navLinks" role="list">
     <li><a href="/how-it-works">How it works</a></li>
     <li><a href="/features">Features</a></li>
-    <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
+    <li><a href="/capyrel">Explore more</a></li>
   </ul>
-  <a class="hp-nav-cta" href="/api/auth/google">
+  <a class="hp-nav-cta" id="nav-cta" href="/api/auth/google">
     Sign in
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg id="nav-cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
 </nav>
 
@@ -158,7 +158,7 @@
       push it to Google Drive, and restore it on any machine with a single command.
     </p>
     <div class="hp-actions">
-      <a class="hp-btn-primary" href="/api/auth/google">
+      <a class="hp-btn-primary" id="hero-cta" href="/api/auth/google">
         Get started free
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
@@ -247,7 +247,7 @@
   <div class="hp-cta">
     <h2>Start snapshotting in 60 seconds</h2>
     <p>Connect your Google account, run <code style="color:#a0b0ff">julion begin</code>, and your first snapshot is one command away.</p>
-    <a class="hp-btn-primary" href="/api/auth/google" style="display:inline-flex">
+    <a class="hp-btn-primary" id="bottom-cta" href="/api/auth/google" style="display:inline-flex">
       Sign in with Google
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
@@ -271,6 +271,22 @@
   const btn = document.getElementById('menuBtn');
   const nav = document.getElementById('navLinks');
   btn.addEventListener('click', () => nav.classList.toggle('open'));
+
+  // Swap CTAs when already signed in
+  (async () => {
+    try {
+      const j = await fetch('/api/auth/me').then(r => r.json());
+      if (!j.success) return;
+      const name = j.data?.name ? j.data.name.split(' ')[0] : 'Dashboard';
+      const arrow = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const nc = document.getElementById('nav-cta');
+      if (nc) { nc.href = '/dashboard'; nc.innerHTML = 'View Dashboard ' + arrow; }
+      const hc = document.getElementById('hero-cta');
+      if (hc) { hc.href = '/dashboard'; hc.innerHTML = 'Open Dashboard ' + arrow; }
+      const bc = document.getElementById('bottom-cta');
+      if (bc) { bc.href = '/dashboard'; bc.innerHTML = 'Go to Dashboard ' + arrow; }
+    } catch {}
+  })();
 </script>
 </body>
 </html>

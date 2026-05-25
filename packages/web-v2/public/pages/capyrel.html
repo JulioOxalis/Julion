@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Capyrel · Schema intelligence for Laravel</title>
+  <meta name="description" content="Capyrel — schema intelligence for Laravel. Describe your project in plain English and get models, migrations, controllers, routes, tests, and more."/>
+  <meta name="theme-color" content="#6b7bff"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="stylesheet" href="/styles.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,sans-serif;background:#07070f;color:#f0f0ff;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+
+    /* Nav */
+    .hp-nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(7,7,15,0.7);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100}
+    .hp-logo{height:40px;width:auto;filter:brightness(0) invert(1)}
+    .hp-nav-links{display:flex;gap:32px;list-style:none}
+    .hp-nav-links a{font-size:0.875rem;font-weight:500;color:rgba(240,240,255,0.55);transition:color 0.15s}
+    .hp-nav-links a:hover,.hp-nav-links a.active{color:#f0f0ff}
+    .hp-nav-links a.active{color:#a0b0ff}
+    .hp-nav-cta{display:inline-flex;align-items:center;gap:8px;padding:9px 22px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:600;transition:background 0.15s,transform 0.1s}
+    .hp-nav-cta:hover{background:#5567ee;transform:translateY(-1px)}
+    .hp-menu-btn{display:none;flex-direction:column;justify-content:space-between;width:26px;height:18px;background:none;border:none;cursor:pointer;padding:0}
+    .hp-menu-btn span{display:block;width:100%;height:2px;background:rgba(240,240,255,0.6);border-radius:2px}
+
+    /* Hero */
+    .pg-hero{position:relative;text-align:center;padding:96px 24px 72px;overflow:hidden}
+    .pg-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(168,85,247,0.18) 0%,rgba(107,123,255,0.12) 40%,transparent 70%)}
+    .pg-hero-inner{position:relative;z-index:1;max-width:780px;margin:0 auto}
+    .pg-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:999px;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#c084fc;margin-bottom:24px}
+    .pg-title{font-size:clamp(2.4rem,5vw+0.5rem,4rem);font-weight:900;letter-spacing:-0.03em;line-height:1.05;margin-bottom:18px}
+    .pg-title .grad{background:linear-gradient(135deg,#a0b0ff 0%,#c084fc 60%,#e879f9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .pg-lead{font-size:1.05rem;color:rgba(240,240,255,0.55);max-width:560px;margin:0 auto 36px;line-height:1.75}
+
+    /* Install pill */
+    .install-box{display:inline-flex;align-items:center;gap:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 22px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.9rem;color:#c084fc;cursor:pointer;transition:border-color 0.15s,background 0.15s}
+    .install-box:hover{border-color:rgba(168,85,247,0.4);background:rgba(168,85,247,0.06)}
+    .install-copy{font-size:0.75rem;color:rgba(240,240,255,0.3);margin-left:8px}
+    .compat-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+    .compat-pill{padding:4px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;font-size:0.76rem;color:rgba(240,240,255,0.45)}
+
+    /* Content wrapper */
+    .cap-content{max-width:1040px;margin:0 auto;padding:0 32px 100px}
+
+    /* Section headers */
+    .cap-section{margin-bottom:72px}
+    .cap-section-label{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;background:rgba(107,123,255,0.1);border:1px solid rgba(107,123,255,0.2);border-radius:20px;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6b7bff;margin-bottom:20px}
+    .cap-section-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-0.02em;margin-bottom:12px;color:#f0f0ff}
+    .cap-section-lead{font-size:0.95rem;color:rgba(240,240,255,0.5);line-height:1.7;max-width:640px}
+
+    /* Modes table */
+    .modes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+    .mode-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:28px 24px;transition:border-color 0.2s,background 0.2s,transform 0.15s;position:relative;overflow:hidden}
+    .mode-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,var(--c,rgba(107,123,255,0.1)) 0%,transparent 70%);pointer-events:none}
+    .mode-card:nth-child(2){--c:rgba(168,85,247,0.1)}
+    .mode-card:hover{border-color:rgba(107,123,255,0.35);transform:translateY(-3px)}
+    .mode-badge{display:inline-block;padding:3px 10px;background:rgba(107,123,255,0.15);border-radius:6px;font-size:0.72rem;font-weight:700;color:#a0b0ff;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:14px}
+    .mode-card:nth-child(2) .mode-badge{background:rgba(168,85,247,0.15);color:#c084fc}
+    .mode-title{font-size:1.05rem;font-weight:700;color:#f0f0ff;margin-bottom:8px}
+    .mode-desc{font-size:0.87rem;color:rgba(240,240,255,0.5);line-height:1.65;margin-bottom:16px}
+    .mode-cmd{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.8rem;color:#a0b0ff;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 12px;display:block}
+
+    /* Code blocks */
+    .cap-code{background:#0d0d1f;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin:20px 0}
+    .cap-code-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06)}
+    .cap-code-dot{width:10px;height:10px;border-radius:50%}
+    .cap-code-dot:nth-child(1){background:#ff5f57}
+    .cap-code-dot:nth-child(2){background:#ffbd2e}
+    .cap-code-dot:nth-child(3){background:#28ca41}
+    .cap-code-lang{font-size:0.72rem;color:rgba(240,240,255,0.25);margin-left:auto;letter-spacing:0.05em}
+    .cap-code pre{padding:20px 22px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.82rem;line-height:1.65;color:rgba(240,240,255,0.85);overflow-x:auto;white-space:pre}
+    .cap-code-comment{color:rgba(160,176,255,0.4)}
+    .cap-code-cmd{color:#c084fc}
+    .cap-code-flag{color:#a0b0ff}
+    .cap-code-out{color:rgba(240,240,255,0.45)}
+
+    /* Feature grid */
+    .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+    .feat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:26px 22px;transition:border-color 0.2s,background 0.2s,transform 0.15s;display:flex;flex-direction:column}
+    .feat-card:hover{border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.06);transform:translateY(-3px)}
+    .feat-icon{width:48px;height:48px;border-radius:14px;background:rgba(168,85,247,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px;flex-shrink:0}
+    .feat-title{font-size:0.95rem;font-weight:700;color:#f0f0ff;margin-bottom:8px}
+    .feat-desc{font-size:0.83rem;color:rgba(240,240,255,0.48);line-height:1.7;flex:1}
+    .feat-tag{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.74rem;color:#c084fc;padding:3px 8px;background:rgba(168,85,247,0.1);border-radius:5px;display:inline-block;margin-top:12px}
+
+    /* Health check table */
+    .health-table{width:100%;border-collapse:collapse;background:rgba(4,6,14,0.85);border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-top:24px}
+    .health-table th{padding:10px 16px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,240,255,0.35);border-bottom:1px solid rgba(255,255,255,0.07);font-weight:700}
+    .health-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:rgba(240,240,255,0.7)}
+    .health-table tr:last-child td{border-bottom:none}
+    .health-table tbody tr:hover td{background:rgba(255,255,255,0.025)}
+    .health-check-name{color:#a0b0ff;font-weight:600;font-size:0.82rem;font-family:'JetBrains Mono','Fira Code',monospace}
+
+    /* DB support table */
+    .db-table{width:100%;border-collapse:collapse;background:rgba(4,6,14,0.85);border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-top:24px}
+    .db-table th{padding:10px 16px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,240,255,0.35);border-bottom:1px solid rgba(255,255,255,0.07);font-weight:700}
+    .db-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:rgba(240,240,255,0.7)}
+    .db-table tr:last-child td{border-bottom:none}
+    .db-table tbody tr:hover td{background:rgba(255,255,255,0.025)}
+    .db-name{color:#f0f0ff;font-weight:600}
+    .tick{color:#5dd8a0;font-size:1rem}
+
+    /* Command reference */
+    .cmd-group{margin-bottom:36px}
+    .cmd-group-title{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,240,255,0.35);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .cmd-list{display:flex;flex-direction:column;gap:6px}
+    .cmd-item{display:flex;align-items:flex-start;gap:16px;padding:10px 14px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:10px;transition:background 0.1s}
+    .cmd-item:hover{background:rgba(107,123,255,0.07)}
+    .cmd-name{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.8rem;color:#c084fc;min-width:0;flex:0 0 auto;max-width:360px;word-break:break-all}
+    .cmd-desc{font-size:0.8rem;color:rgba(240,240,255,0.45);line-height:1.5;padding-top:1px}
+
+    /* Examples tabs */
+    .examples-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+    .example-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;transition:border-color 0.2s}
+    .example-card:hover{border-color:rgba(107,123,255,0.3)}
+    .example-header{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .example-title{font-size:0.92rem;font-weight:700;color:#f0f0ff;margin-bottom:4px}
+    .example-desc{font-size:0.8rem;color:rgba(240,240,255,0.4)}
+    .example-body{padding:14px 18px}
+    .example-cmds{display:flex;flex-direction:column;gap:4px}
+    .example-cmd{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.76rem;color:rgba(240,240,255,0.55);padding:3px 0}
+    .example-cmd .c{color:rgba(160,176,255,0.4)}
+    .example-cmd .k{color:#c084fc}
+
+    /* CTA */
+    .cap-cta{background:linear-gradient(135deg,rgba(107,123,255,0.14),rgba(168,85,247,0.12));border:1px solid rgba(107,123,255,0.25);border-radius:24px;padding:56px 40px;text-align:center;margin:0 0 80px}
+    .cap-cta-title{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;color:#f0f0ff;margin-bottom:12px}
+    .cap-cta-lead{color:rgba(240,240,255,0.5);margin-bottom:28px;font-size:0.95rem;line-height:1.65}
+    .cap-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.9rem;font-weight:700;transition:background 0.14s,transform 0.1s}
+    .cap-btn:hover{background:#5567ee;transform:translateY(-1px)}
+    .cap-btn-secondary{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(240,240,255,0.75)}
+    .cap-btn-secondary:hover{background:rgba(255,255,255,0.12);color:#f0f0ff}
+    .cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+    /* Footer */
+    .hp-footer{border-top:1px solid rgba(255,255,255,0.06);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:rgba(240,240,255,0.3);flex-wrap:wrap;gap:16px}
+    .hp-footer-links{display:flex;gap:24px}
+    .hp-footer-links a{color:rgba(240,240,255,0.3);transition:color 0.12s}
+    .hp-footer-links a:hover{color:#a0b0ff}
+
+    /* Rule inference pills */
+    .inference-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .inf-pill{padding:5px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.76rem;color:rgba(240,240,255,0.55)}
+    .inf-pill .arr{color:#6b7bff;margin:0 4px}
+    .inf-pill .out{color:#5dd8a0}
+
+    /* Divider */
+    .cap-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent);margin:0 0 72px}
+
+    /* Responsive */
+    @media(max-width:768px){
+      .hp-nav{padding:0 20px}
+      .hp-nav-links{display:none;position:absolute;top:68px;left:0;right:0;background:rgba(7,7,15,0.98);flex-direction:column;gap:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);z-index:99}
+      .hp-nav-links.open{display:flex}
+      .hp-nav-links li{padding:0}
+      .hp-nav-links a{display:block;padding:14px 24px;font-size:0.95rem}
+      .hp-menu-btn{display:flex}
+      .pg-hero{padding:64px 20px 48px}
+      .cap-content{padding:0 20px 60px}
+      .modes-grid,.feat-grid,.examples-grid{grid-template-columns:1fr}
+      .cap-cta{padding:40px 24px}
+      .hp-footer{padding:24px 20px;flex-direction:column;text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="hp-nav">
+  <a href="/"><img src="/images/julion-logo.png" alt="Julion" class="hp-logo" onerror="this.style.display='none'"/></a>
+  <button class="hp-menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <ul class="hp-nav-links" id="navLinks" role="list">
+    <li><a href="/how-it-works">How it works</a></li>
+    <li><a href="/features">Features</a></li>
+    <li><a href="/capyrel" class="active">Explore more</a></li>
+  </ul>
+  <a class="hp-nav-cta" id="nav-cta" href="/api/auth/google">Sign in</a>
+</nav>
+
+<!-- Hero -->
+<div class="pg-hero">
+  <div class="pg-hero-bg"></div>
+  <div class="pg-hero-inner">
+    <div class="pg-eyebrow">Laravel Ecosystem</div>
+    <h1 class="pg-title"><span class="grad">Capyrel</span></h1>
+    <p class="pg-lead">Schema intelligence for Laravel. Describe your project in plain English — or point it at an existing database — and get models, migrations, controllers, routes, API specs, tests, and more.</p>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div class="install-box" id="install-cmd" title="Click to copy">
+        <span>composer require julio/capyrel</span>
+        <span class="install-copy">click to copy</span>
+      </div>
+      <div class="compat-pills">
+        <span class="compat-pill">Laravel 11 &amp; 12</span>
+        <span class="compat-pill">PHP 8.2+</span>
+        <span class="compat-pill">MySQL</span>
+        <span class="compat-pill">PostgreSQL</span>
+        <span class="compat-pill">SQLite</span>
+        <span class="compat-pill">MongoDB</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="cap-content">
+
+  <!-- Two modes -->
+  <section class="cap-section">
+    <div class="cap-section-label">Two modes</div>
+    <h2 class="cap-section-title">Start fresh or scaffold existing</h2>
+    <p class="cap-section-lead">Whether you're spinning up a new project or inheriting a legacy schema, Capyrel adapts to where you are.</p>
+    <div class="modes-grid">
+      <div class="mode-card">
+        <div class="mode-badge">New project</div>
+        <div class="mode-title">Describe it, build it</div>
+        <div class="mode-desc">Start from plain English. Capyrel parses your description, matches archetypes, proposes fields interactively, then writes models + migrations.</div>
+        <code class="mode-cmd">php artisan capyrel:new</code>
+      </div>
+      <div class="mode-card">
+        <div class="mode-badge">Existing database</div>
+        <div class="mode-title">Scaffold from your schema</div>
+        <div class="mode-desc">Point Capyrel at your running database. It reads foreign keys, detects relationships, generates controllers and routes — with a health check built in.</div>
+        <code class="mode-cmd">php artisan model:scaffold</code>
+      </div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Quick start: new project -->
+  <section class="cap-section">
+    <div class="cap-section-label">Quick start</div>
+    <h2 class="cap-section-title">New project wizard</h2>
+    <p class="cap-section-lead">Run one command. Capyrel detects your stack, parses your description, proposes fields in an interactive table, and writes everything.</p>
+    <div class="cap-code">
+      <div class="cap-code-bar">
+        <div class="cap-code-dot"></div><div class="cap-code-dot"></div><div class="cap-code-dot"></div>
+        <span class="cap-code-lang">shell</span>
+      </div>
+      <pre><span class="cap-code-cmd">php artisan capyrel:new</span>
+
+<span class="cap-code-out">  New Project Wizard — models + migrations, zero friction
+
+  Laravel 12.x · PHP 8.3 · Scout
+
+  Describe your project (or list your models):
+  &gt; a blog platform with posts, tags, authors, and comments
+
+  Detected entities: Post, Tag, Author, Comment
+
+  ── Post ───────────────────────────────────────────────
+  Archetype matched: post
+  ┌─────────────┬──────────────────┬──────────────┐
+  │ Field       │ Type             │ Flags        │
+  ├─────────────┼──────────────────┼──────────────┤
+  │ title       │ string           │ —            │
+  │ slug        │ string           │ unique       │
+  │ body        │ text             │ nullable     │
+  │ published_at│ timestamp        │ nullable     │
+  │ is_published│ boolean          │ default=false│
+  │ user_id     │ foreignId → users│ —            │
+  └─────────────┴──────────────────┴──────────────┘
+
+  What would you like to do with Post?
+  &gt; Confirm — looks good
+
+  ✔ Wrote app/Models/Post.php
+  ✔ Wrote database/migrations/2026_05_24_create_posts_table.php</span></pre>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+      <div style="flex:1;min-width:260px">
+        <div class="cap-code">
+          <div class="cap-code-bar"><div class="cap-code-dot"></div><div class="cap-code-dot"></div><div class="cap-code-dot"></div><span class="cap-code-lang">next steps</span></div>
+          <pre><span class="cap-code-cmd">php artisan migrate</span>
+<span class="cap-code-cmd">php artisan model:scaffold</span>   <span class="cap-code-comment"># controllers + routes</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Quick start: existing DB -->
+  <section class="cap-section">
+    <div class="cap-section-label">Quick start</div>
+    <h2 class="cap-section-title">Scaffold an existing database</h2>
+    <p class="cap-section-lead">Capyrel reads your schema, maps every relationship, runs a health check, then writes model methods, controllers, and routes.</p>
+    <div class="cap-code">
+      <div class="cap-code-bar"><div class="cap-code-dot"></div><div class="cap-code-dot"></div><div class="cap-code-dot"></div><span class="cap-code-lang">shell</span></div>
+      <pre><span class="cap-code-cmd">php artisan model:scaffold</span>
+
+<span class="cap-code-out">  Detected relationships:
+
+  User
+  ├── hasMany          ──▶ Post          [posts.user_id]
+  ├── hasOne           ──▶ Profile       [profiles.user_id]
+  └── belongsToMany    ──▶ Role          [pivot: role_user]
+
+  Post
+  ├── belongsTo        ──▶ User          [posts.user_id]
+  └── hasMany          ──▶ Comment       [comments.post_id]
+
+  ⚕ Health check — 1 warning
+  ⚠ [Post] Missing index on posts.user_id — full table scan risk
+    ↳ Add: $table-&gt;index('user_id') in the migration
+
+  Write relationship methods into model files? [yes]
+  Generate / update controller files? [yes]
+  Write resource routes to routes/web.php? [yes]
+
+  ✔ Capyrel scaffold complete.
+    4 model method(s) added · 2 controller(s) touched</span></pre>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Feature cards -->
+  <section class="cap-section">
+    <div class="cap-section-label">What Capyrel generates</div>
+    <h2 class="cap-section-title">Everything from one schema</h2>
+    <p class="cap-section-lead">One command fan-out — models, migrations, controllers, tests, API specs, TypeScript interfaces, and more.</p>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🏗️</div>
+        <div class="feat-title">Models &amp; Migrations</div>
+        <div class="feat-desc">Fillable arrays, casts, relationships, and SoftDeletes traits — all written for you with archetype-matched field types.</div>
+        <span class="feat-tag">capyrel:new · model:scaffold</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔌</div>
+        <div class="feat-title">Controllers &amp; Routes</div>
+        <div class="feat-desc">Paginated index with search, eager loading, dual JSON/view responses, and restore/forceDelete for soft-delete models.</div>
+        <span class="feat-tag">model:scaffold</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📡</div>
+        <div class="feat-title">API Resources</div>
+        <div class="feat-desc">N+1-proof resources using whenLoaded() — auto-generated for every relationship detected in your schema.</div>
+        <span class="feat-tag">model:resources</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🛡️</div>
+        <div class="feat-title">Form Requests</div>
+        <div class="feat-desc">Validation rules derived from column types: varchar → max:255, FK → exists, unique index → Rule::unique, email column → email rule.</div>
+        <span class="feat-tag">model:requests</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🧪</div>
+        <div class="feat-title">Pest Tests</div>
+        <div class="feat-desc">Relationship tests for every HasMany, BelongsTo, BelongsToMany — including attach/sync tests for pivot tables.</div>
+        <span class="feat-tag">model:tests</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-title">Factories &amp; Seeders</div>
+        <div class="feat-desc">Column-aware: email → fake()->email(), *_at → fake()->dateTime(), FK → related factory. No manual wiring.</div>
+        <span class="feat-tag">model:factory · model:seed</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📝</div>
+        <div class="feat-title">OpenAPI &amp; Postman</div>
+        <div class="feat-desc">Full OpenAPI 3.0 YAML spec and Postman collection — ready to import, covering every generated route.</div>
+        <span class="feat-tag">capyrel:openapi · capyrel:postman</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🟦</div>
+        <div class="feat-title">TypeScript Types</div>
+        <div class="feat-desc">TypeScript interfaces generated from your schema — ship to your frontend with one command.</div>
+        <span class="feat-tag">capyrel:typescript</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Architecture Layer</div>
+        <div class="feat-desc">Repository, Service, DTO classes; state machines; policies; enums; observers; Livewire components; broadcast events.</div>
+        <span class="feat-tag">model:architecture · model:state-machine</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Project examples -->
+  <section class="cap-section">
+    <div class="cap-section-label">Project examples</div>
+    <h2 class="cap-section-title">Real projects in minutes</h2>
+    <p class="cap-section-lead">From a simple blog to a SaaS with teams and subscriptions — Capyrel scales with your complexity.</p>
+    <div class="examples-grid">
+      <div class="example-card">
+        <div class="example-header">
+          <div class="example-title">Blog platform</div>
+          <div class="example-desc">5 models · API Resources · OpenAPI spec · Pest tests</div>
+        </div>
+        <div class="example-body">
+          <div class="example-cmds">
+            <div class="example-cmd"><span class="k">php artisan capyrel:new</span></div>
+            <div class="example-cmd"><span class="c"># &gt; a blog with posts, tags, authors, and comments</span></div>
+            <div class="example-cmd"><span class="k">php artisan migrate</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:scaffold</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:resources</span>    <span class="c"># API Resources</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:tests</span>        <span class="c"># Pest tests</span></div>
+            <div class="example-cmd"><span class="k">php artisan capyrel:openapi</span>    <span class="c"># OpenAPI 3.0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-header">
+          <div class="example-title">E-commerce store</div>
+          <div class="example-desc">7 models · Factories · TypeScript types · Postman</div>
+        </div>
+        <div class="example-body">
+          <div class="example-cmds">
+            <div class="example-cmd"><span class="k">php artisan capyrel:new</span></div>
+            <div class="example-cmd"><span class="c"># &gt; Product, Order, Customer, Review, Coupon</span></div>
+            <div class="example-cmd"><span class="k">php artisan migrate</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:scaffold</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:factory</span>      <span class="c"># factories</span></div>
+            <div class="example-cmd"><span class="k">php artisan capyrel:typescript</span> <span class="c"># TS types</span></div>
+            <div class="example-cmd"><span class="k">php artisan capyrel:postman</span>    <span class="c"># Postman</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-header">
+          <div class="example-title">SaaS with teams</div>
+          <div class="example-desc">State machine · Permissions matrix · Broadcast events</div>
+        </div>
+        <div class="example-body">
+          <div class="example-cmds">
+            <div class="example-cmd"><span class="k">php artisan capyrel:new</span></div>
+            <div class="example-cmd"><span class="c"># &gt; User, Team, Plan, Subscription, Invoice</span></div>
+            <div class="example-cmd"><span class="k">php artisan migrate</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:state-machine</span> <span class="c">Subscription</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:permissions</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:broadcast</span> <span class="c">User</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-header">
+          <div class="example-title">REST API only</div>
+          <div class="example-desc">Resources · Requests · OpenAPI · TypeScript · Postman</div>
+        </div>
+        <div class="example-body">
+          <div class="example-cmds">
+            <div class="example-cmd"><span class="k">php artisan capyrel:new</span></div>
+            <div class="example-cmd"><span class="c"># &gt; Article, Author, Publication, Tag</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:scaffold</span> <span class="c">--models --controllers</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:resources</span></div>
+            <div class="example-cmd"><span class="k">php artisan model:requests</span></div>
+            <div class="example-cmd"><span class="k">php artisan capyrel:openapi</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Command reference -->
+  <section class="cap-section">
+    <div class="cap-section-label">Command reference</div>
+    <h2 class="cap-section-title">Every command at a glance</h2>
+    <p class="cap-section-lead">30+ artisan commands organized by what they do — run any one independently or chain them.</p>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">New project wizard</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">capyrel:new</div><div class="cmd-desc">Interactive wizard — describe your project, review fields, write models + migrations</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:new --force</div><div class="cmd-desc">Skip all confirmations</div></div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">Scaffolding</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">model:scaffold</div><div class="cmd-desc">Full scaffold from existing database: relationships, controllers, routes</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:scaffold User</div><div class="cmd-desc">Scaffold one model only</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:scaffold --dry-run</div><div class="cmd-desc">Preview what would be written — writes nothing</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:scaffold --connection=pgsql</div><div class="cmd-desc">Target a specific database connection</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:map --format=mermaid</div><div class="cmd-desc">ASCII tree or Mermaid diagram of all relationships</div></div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">API layer</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">model:resources</div><div class="cmd-desc">API Resources with whenLoaded() for every relationship — N+1-proof</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:requests</div><div class="cmd-desc">Form Requests with column-derived validation rules</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:tests</div><div class="cmd-desc">Pest relationship tests for every model</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:factory / model:seed</div><div class="cmd-desc">Column-aware factories and seeder classes</div></div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">Architecture</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">model:architecture Post</div><div class="cmd-desc">Repository, Service, DTO pattern for a model</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:state-machine Order</div><div class="cmd-desc">State machine: pending → processing → shipped → delivered</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:policy</div><div class="cmd-desc">Policy class with index/view/create/update/delete/restore</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:enum Post</div><div class="cmd-desc">PHP enums from string columns with detectable patterns</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:broadcast Post</div><div class="cmd-desc">Created/Updated/Deleted events + channel classes</div></div>
+        <div class="cmd-item"><div class="cmd-name">model:livewire Post</div><div class="cmd-desc">PostIndex + PostForm Livewire components</div></div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">Contract generation</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">capyrel:openapi</div><div class="cmd-desc">OpenAPI 3.0 YAML spec — ready for Postman/Swagger</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:typescript</div><div class="cmd-desc">TypeScript interfaces for every model</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:postman</div><div class="cmd-desc">Postman collection JSON for all routes</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:graphql</div><div class="cmd-desc">GraphQL schema SDL</div></div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-title">Safety &amp; ops</div>
+      <div class="cmd-list">
+        <div class="cmd-item"><div class="cmd-name">capyrel:safe-migrate --check</div><div class="cmd-desc">Scan migrations for risk — never runs, just reports</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:health-controller</div><div class="cmd-desc">Generates /api/health endpoint with DB + cache checks</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:audit</div><div class="cmd-desc">Full schema health report without writing anything</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:watch</div><div class="cmd-desc">Watch mode — auto-updates models when migrations change</div></div>
+        <div class="cmd-item"><div class="cmd-name">capyrel:fullstack</div><div class="cmd-desc">One command: scaffold + routes + tests</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Health check -->
+  <section class="cap-section">
+    <div class="cap-section-label">Schema intelligence</div>
+    <h2 class="cap-section-title">Built-in health check</h2>
+    <p class="cap-section-lead">Every scaffold run includes a schema audit. Capyrel catches 12 categories of issues before they hit production.</p>
+    <table class="health-table">
+      <thead><tr><th>Check</th><th>What it finds</th></tr></thead>
+      <tbody>
+        <tr><td><span class="health-check-name">N+1 risk</span></td><td>Relationship access without eager loading</td></tr>
+        <tr><td><span class="health-check-name">Missing index</span></td><td>FK columns with no index — full table scan potential</td></tr>
+        <tr><td><span class="health-check-name">Orphan FK</span></td><td>*_id columns pointing to tables that don't exist</td></tr>
+        <tr><td><span class="health-check-name">Inverse missing</span></td><td>One-sided relationship — A→B defined, B→A not</td></tr>
+        <tr><td><span class="health-check-name">Naming conflict</span></td><td>Generated method name clashes with existing method</td></tr>
+        <tr><td><span class="health-check-name">Soft-delete drift</span></td><td>deleted_at column without SoftDeletes trait</td></tr>
+        <tr><td><span class="health-check-name">Eager load depth</span></td><td>hasManyThrough chains 3+ levels deep</td></tr>
+        <tr><td><span class="health-check-name">Circular dependency</span></td><td>Self-referential eager load that would loop</td></tr>
+        <tr><td><span class="health-check-name">Cascade risk</span></td><td>FK with no ON DELETE rule</td></tr>
+        <tr><td><span class="health-check-name">Fillable drift</span></td><td>$fillable fields that don't exist in the table</td></tr>
+        <tr><td><span class="health-check-name">Morph registry</span></td><td>morphTo without Relation::morphMap()</td></tr>
+        <tr><td><span class="health-check-name">Dead relationship</span></td><td>Defined but never referenced anywhere</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Rule inference -->
+  <section class="cap-section">
+    <div class="cap-section-label">Validation intelligence</div>
+    <h2 class="cap-section-title">Rules derived from your schema</h2>
+    <p class="cap-section-lead">Capyrel reads column types, constraints, and naming conventions to infer Form Request validation rules automatically.</p>
+    <div class="cap-code">
+      <div class="cap-code-bar"><div class="cap-code-dot"></div><div class="cap-code-dot"></div><div class="cap-code-dot"></div><span class="cap-code-lang">php — auto-generated</span></div>
+      <pre><span style="color:rgba(192,132,252,0.6)">// StorePostRequest.php</span>
+<span style="color:#a0b0ff">public function</span> <span style="color:#f0f0ff">rules</span>()<span style="color:#a0b0ff">: array</span>
+{
+    <span style="color:#a0b0ff">return</span> [
+        <span style="color:#5dd8a0">'title'</span>   <span style="color:#a0b0ff">=&gt;</span> [<span style="color:#5dd8a0">'required'</span>, <span style="color:#5dd8a0">'string'</span>, <span style="color:#5dd8a0">'max:255'</span>],
+        <span style="color:#5dd8a0">'body'</span>    <span style="color:#a0b0ff">=&gt;</span> [<span style="color:#5dd8a0">'required'</span>, <span style="color:#5dd8a0">'string'</span>],
+        <span style="color:#5dd8a0">'slug'</span>    <span style="color:#a0b0ff">=&gt;</span> [<span style="color:#5dd8a0">'required'</span>, <span style="color:#5dd8a0">'string'</span>, <span style="color:#a0b0ff">Rule</span>::<span style="color:#f0f0ff">unique</span>(<span style="color:#5dd8a0">'posts'</span>, <span style="color:#5dd8a0">'slug'</span>)],
+        <span style="color:#5dd8a0">'user_id'</span> <span style="color:#a0b0ff">=&gt;</span> [<span style="color:#5dd8a0">'required'</span>, <span style="color:#5dd8a0">'integer'</span>, <span style="color:#5dd8a0">'exists:users,id'</span>],
+    ];
+}</pre>
+    </div>
+    <div class="inference-pills">
+      <div class="inf-pill">varchar(255)<span class="arr">→</span><span class="out">max:255</span></div>
+      <div class="inf-pill">nullable<span class="arr">→</span><span class="out">removes required</span></div>
+      <div class="inf-pill">*_id FK<span class="arr">→</span><span class="out">exists:table,id</span></div>
+      <div class="inf-pill">unique index<span class="arr">→</span><span class="out">Rule::unique()</span></div>
+      <div class="inf-pill">column email<span class="arr">→</span><span class="out">email rule</span></div>
+      <div class="inf-pill">column *_url<span class="arr">→</span><span class="out">url rule</span></div>
+    </div>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- Database support -->
+  <section class="cap-section">
+    <div class="cap-section-label">Database support</div>
+    <h2 class="cap-section-title">Works with your database</h2>
+    <p class="cap-section-lead">Full schema introspection across MySQL, PostgreSQL, SQLite, and MongoDB — FK detection and index scanning included.</p>
+    <table class="db-table">
+      <thead><tr><th>Database</th><th>Schema reading</th><th>FK detection</th><th>Index detection</th></tr></thead>
+      <tbody>
+        <tr><td><span class="db-name">MySQL / MariaDB</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td><span class="db-name">PostgreSQL</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td><span class="db-name">SQLite</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td><span class="db-name">MongoDB</span></td><td><span class="tick">✓</span> document sampling + migration fallback</td><td><span class="tick">✓</span> convention</td><td><span class="tick">✓</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="cap-divider"></div>
+
+  <!-- CTA -->
+  <div class="cap-cta">
+    <h2 class="cap-cta-title">Ready to ship your Laravel schema?</h2>
+    <p class="cap-cta-lead">One composer command, and Capyrel handles the rest — models, migrations, controllers, tests, and full API documentation.</p>
+    <div class="cta-btns">
+      <a class="cap-btn" href="/api/auth/google">Get started with Julion</a>
+    </div>
+    <div style="margin-top:20px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.85rem;color:rgba(240,240,255,0.35)">composer require julio/capyrel</div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="hp-footer">
+  <span>© 2026 Julion</span>
+  <nav class="hp-footer-links">
+    <a href="/">Home</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/features">Features</a>
+    <a href="/capyrel">Capyrel</a>
+  </nav>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  const btn = document.getElementById('menuBtn');
+  const nav = document.getElementById('navLinks');
+  btn.addEventListener('click', () => nav.classList.toggle('open'));
+
+  // Swap nav CTA when signed in
+  (async()=>{try{const j=await fetch('/api/auth/me').then(r=>r.json());if(!j.success)return;const nc=document.getElementById('nav-cta');if(nc){nc.href='/dashboard';nc.textContent='View Dashboard';}}catch{}})();
+
+  // Copy install command
+  document.getElementById('install-cmd').addEventListener('click', () => {
+    navigator.clipboard.writeText('composer require julio/capyrel').then(() => {
+      const el = document.querySelector('#install-cmd .install-copy');
+      el.textContent = 'copied!';
+      setTimeout(() => { el.textContent = 'click to copy'; }, 1800);
+    });
+  });
+</script>
+</body>
+</html>

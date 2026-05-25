@@ -141,9 +141,9 @@
   <ul class="hp-nav-links" id="navLinks" role="list">
     <li><a href="/how-it-works" class="active">How it works</a></li>
     <li><a href="/features">Features</a></li>
-    <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
+    <li><a href="/capyrel">Explore more</a></li>
   </ul>
-  <a class="hp-nav-cta" href="/api/auth/google">Sign in</a>
+  <a class="hp-nav-cta" id="nav-cta" href="/api/auth/google">Sign in</a>
 </nav>
 
 <div class="pg-hero">
@@ -593,6 +593,7 @@ julion seal --deposit --repository ci-builds -o build-$CI_COMMIT_SHA.on</div>
     });
   },{rootMargin:'-20% 0px -70% 0px'});
   sections.forEach(s=>obs.observe(s));
+  (async()=>{try{const j=await fetch('/api/auth/me').then(r=>r.json());if(!j.success)return;const nc=document.getElementById('nav-cta');if(nc){nc.href='/dashboard';nc.textContent='View Dashboard';}}catch{}})();
 </script>
 </body>
 </html>

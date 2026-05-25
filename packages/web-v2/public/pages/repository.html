@@ -7,43 +7,85 @@
   <meta name="robots" content="noindex, nofollow"/>
   <meta name="theme-color" content="#6b7bff"/>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"/>
   <link rel="manifest" href="/manifest.json"/>
   <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body class="dashboard-body">
-<div class="dashboard-layout">
-
+<div class="dashboard-layout" id="app-layout">
   <div id="sidebar"></div>
-
-  <main class="main-panel">
-    <a id="back-link" class="back-link" href="/repositories">&#8592; Repositories</a>
-    <div class="page-header" style="margin-bottom:20px">
-      <h1 class="page-title" id="page-title">Loading…</h1>
-    </div>
-    <div id="main-content">
-      <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
-    </div>
+  <main class="main-panel" id="repo-main">
+    <div style="color:rgba(247,248,251,0.4);padding:40px;font-size:0.85rem">Loading…</div>
   </main>
-
 </div>
 
-<!-- ── Monaco editor modal ── -->
+<!-- ── Terminal panel (slide up from bottom) ── -->
+<div class="terminal-panel" id="terminal-panel" aria-hidden="true">
+  <div class="terminal-titlebar">
+    <div class="terminal-titlebar-left">
+      <span class="terminal-dot t-red"></span>
+      <span class="terminal-dot t-yellow"></span>
+      <span class="terminal-dot t-green"></span>
+      <span class="terminal-title">JULION TERMINAL</span>
+    </div>
+    <div class="terminal-titlebar-right">
+      <button class="terminal-btn" id="terminal-clear-btn" title="Clear">Clear</button>
+      <button class="terminal-btn terminal-btn-close" id="terminal-close-btn" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="terminal-output" id="terminal-output"></div>
+  <div class="terminal-input-row">
+    <span class="terminal-prompt">julion&gt;</span>
+    <input class="terminal-input" id="terminal-input" type="text" autocomplete="off" spellcheck="false" placeholder="help"/>
+  </div>
+</div>
+
+<!-- ── Monaco editor (full-screen modal) ── -->
 <div class="editor-modal" id="editor-modal" role="dialog" aria-modal="true" aria-label="File editor">
   <div class="editor-bar">
     <div class="editor-bar-left">
-      <span class="editor-dot dot-red"   aria-hidden="true"></span>
-      <span class="editor-dot dot-yellow" aria-hidden="true"></span>
-      <span class="editor-dot dot-green"  aria-hidden="true"></span>
+      <span class="editor-dot dot-red"></span>
+      <span class="editor-dot dot-yellow"></span>
+      <span class="editor-dot dot-green"></span>
       <span class="editor-path" id="editor-path"></span>
     </div>
     <div class="editor-bar-right">
       <span class="editor-status" id="editor-status"></span>
-      <button class="editor-save-btn" id="editor-save-btn" type="button" disabled>Save &amp; Push to Drive</button>
+      <button class="editor-save-btn" id="editor-save-btn" type="button" disabled>Save to Drive</button>
       <button class="editor-close-btn" id="editor-close-btn" type="button" aria-label="Close editor">&#x2715;</button>
     </div>
   </div>
   <div id="monaco-container"></div>
+</div>
+
+<!-- ── Compare modal ── -->
+<div class="overlay-modal" id="compare-modal" hidden aria-modal="true" role="dialog" aria-label="Compare snapshots">
+  <div class="overlay-modal-box">
+    <div class="overlay-modal-header">
+      <h2 class="overlay-modal-title">Compare Snapshots</h2>
+      <button class="overlay-modal-close" id="compare-close-btn">✕</button>
+    </div>
+    <div class="overlay-modal-body" id="compare-body">
+      <p class="overlay-modal-sub">Select a snapshot to compare with the current one.</p>
+      <select class="overlay-select" id="compare-select"></select>
+      <div style="margin-top:16px">
+        <button class="overlay-btn-primary" id="compare-run-btn">Run Compare</button>
+      </div>
+      <div id="compare-results" style="margin-top:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Verify modal ── -->
+<div class="overlay-modal" id="verify-modal" hidden aria-modal="true" role="dialog" aria-label="Verify integrity">
+  <div class="overlay-modal-box">
+    <div class="overlay-modal-header">
+      <h2 class="overlay-modal-title">Integrity Check</h2>
+      <button class="overlay-modal-close" id="verify-close-btn">✕</button>
+    </div>
+    <div class="overlay-modal-body" id="verify-body">
+      <p class="overlay-modal-sub">Verifying checksums for every file in this snapshot…</p>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="/js/repository.js"></script>

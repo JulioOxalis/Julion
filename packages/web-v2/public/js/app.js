@@ -49,6 +49,7 @@ export function renderSidebar(user, active) {
       <div class="nav-links" role="list">
         <a href="/dashboard"    class="nav-link${active === "dashboard"    ? " nav-link-active" : ""}" aria-current="${active === "dashboard"    ? "page" : "false"}">Overview</a>
         <a href="/repositories" class="nav-link${active === "repositories" ? " nav-link-active" : ""}" aria-current="${active === "repositories" ? "page" : "false"}">Repositories</a>
+        <button class="sidebar-terminal-btn" data-action="toggle-terminal" title="Toggle terminal (Ctrl+\`)">⌘ Terminal</button>
       </div>
       <div class="sidebar-footer">
         <div class="sidebar-user">

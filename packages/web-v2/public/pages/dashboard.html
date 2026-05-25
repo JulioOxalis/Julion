@@ -30,28 +30,58 @@
       <p class="page-subtitle" id="page-subtitle">Loading…</p>
     </div>
 
-    <div class="overview-grid">
-      <!-- Profile card -->
+    <!-- Stats row -->
+    <div class="dash-stats-row" id="dash-stats-row">
       <div class="info-card info-card-highlight" id="profile-card">
         <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
       </div>
-
-      <!-- Drive / repos card -->
       <div class="info-card" id="drive-card">
         <h3 class="card-label">Google Drive</h3>
         <div style="color:rgba(247,248,251,0.4);font-size:0.85rem">Loading…</div>
       </div>
+    </div>
 
-      <!-- Quick commands card -->
-      <div class="info-card">
-        <h3 class="card-label">Quick commands</h3>
-        <div class="dash-quick-cmd">
-          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion seal --ultra --deposit --repository my-repo</div>
-          <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion fetch my-repo snapshot.on -o ./out</div>
-        </div>
+    <!-- Activity feed -->
+    <div class="activity-feed" id="activity-feed">
+      <div class="activity-feed-header">
+        <h3 class="activity-feed-title">Recent Activity</h3>
+        <a class="inline-link" href="/repositories" style="font-size:0.78rem">View all →</a>
+      </div>
+      <div id="activity-list">
+        <div class="activity-item"><span style="color:rgba(247,248,251,0.35);font-size:0.85rem;padding:4px 0">Loading activity…</span></div>
+      </div>
+    </div>
+
+    <!-- Quick commands card -->
+    <div class="info-card" style="margin-top:16px">
+      <h3 class="card-label">Quick commands</h3>
+      <div class="dash-quick-cmd">
+        <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion seal --ultra --deposit --repository my-repo</div>
+        <div class="dash-cmd-pill"><span class="dash-cmd-dot"></span>julion fetch my-repo snapshot.on -o ./out</div>
       </div>
     </div>
   </main>
+
+  <!-- Terminal panel -->
+  <div class="terminal-panel" id="terminal-panel" aria-hidden="true">
+    <div class="terminal-titlebar">
+      <div class="terminal-titlebar-left">
+        <span class="terminal-dot t-red"></span>
+        <span class="terminal-dot t-yellow"></span>
+        <span class="terminal-dot t-green"></span>
+        <span class="terminal-title">JULION TERMINAL</span>
+      </div>
+      <div class="terminal-titlebar-right">
+        <button class="terminal-btn" id="terminal-clear-btn" title="Clear">Clear</button>
+        <button class="terminal-btn terminal-btn-close" id="terminal-close-btn" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="terminal-output" id="terminal-output"></div>
+    <div class="terminal-input-row">
+      <span class="terminal-prompt">julion&gt;</span>
+      <input class="terminal-input" id="terminal-input" type="text" autocomplete="off" spellcheck="false" placeholder="help"/>
+    </div>
+  </div>
 
 </div>
 <script type="module" src="/js/dashboard.js"></script>

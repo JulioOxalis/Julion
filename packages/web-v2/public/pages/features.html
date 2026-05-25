@@ -86,9 +86,9 @@
   <ul class="hp-nav-links" id="navLinks" role="list">
     <li><a href="/how-it-works">How it works</a></li>
     <li><a href="/features" class="active">Features</a></li>
-    <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
+    <li><a href="/capyrel">Explore more</a></li>
   </ul>
-  <a class="hp-nav-cta" href="/api/auth/google">Sign in</a>
+  <a class="hp-nav-cta" id="nav-cta" href="/api/auth/google">Sign in</a>
 </nav>
 
 <div class="pg-hero">
@@ -182,6 +182,7 @@
 <script>
   const btn=document.getElementById('menuBtn'),nav=document.getElementById('navLinks');
   btn.addEventListener('click',()=>nav.classList.toggle('open'));
+  (async()=>{try{const j=await fetch('/api/auth/me').then(r=>r.json());if(!j.success)return;const nc=document.getElementById('nav-cta');if(nc){nc.href='/dashboard';nc.textContent='View Dashboard';}}catch{}})();
 </script>
 </body>
 </html>

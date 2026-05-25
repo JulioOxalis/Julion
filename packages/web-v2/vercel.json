@@ -10,7 +10,8 @@
     { "source": "/dashboard",       "destination": "/pages/dashboard.html" },
     { "source": "/repositories", "destination": "/pages/repositories.html" },
     { "source": "/repository",   "destination": "/pages/repository.html" },
-    { "source": "/auth-complete","destination": "/pages/auth-complete.html" }
+    { "source": "/auth-complete","destination": "/pages/auth-complete.html" },
+    { "source": "/capyrel",     "destination": "/pages/capyrel.html" }
   ],
   "headers": [
     {

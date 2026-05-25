@@ -1189,3 +1189,854 @@ main { display: grid; gap: 18px; }
   .lp-hero-cta { padding: 14px 26px; font-size: 0.95rem; }
   .main-panel { padding: 16px 12px; }
 }
+
+/* ── Repository snap layout ───────────────────────────────────────────────── */
+.repo-snap-mode {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.repo-snap-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.repo-snap-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  background: rgba(4,6,14,0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.repo-snap-back {
+  color: rgba(247,248,251,0.5);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition: color 0.12s;
+  white-space: nowrap;
+}
+.repo-snap-back:hover { color: #a0b0ff; }
+
+.repo-snap-sep {
+  color: rgba(255,255,255,0.2);
+  font-size: 0.85rem;
+}
+
+.repo-snap-name {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.82rem;
+  color: #c0ccff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.repo-snap-meta-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+
+.snap-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  font-size: 0.74rem;
+  color: rgba(247,248,251,0.6);
+  white-space: nowrap;
+}
+
+.snap-pill-accent {
+  background: rgba(107,123,255,0.15);
+  border-color: rgba(107,123,255,0.3);
+  color: #a0b0ff;
+}
+
+.repo-snap-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.snap-action-btn {
+  padding: 5px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  color: rgba(247,248,251,0.75);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.snap-action-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12);
+  color: #f7f8fb;
+  border-color: rgba(255,255,255,0.18);
+}
+.snap-action-btn:disabled { opacity: 0.35; cursor: default; }
+
+.snap-action-btn-terminal {
+  border-color: rgba(107,123,255,0.35);
+  color: #a0b0ff;
+}
+.snap-action-btn-terminal:hover {
+  background: rgba(107,123,255,0.15) !important;
+  border-color: rgba(107,123,255,0.5) !important;
+  color: #c0ccff !important;
+}
+
+.snap-action-btn-accent {
+  background: rgba(107,123,255,0.14);
+  border-color: rgba(107,123,255,0.3);
+  color: #a0b0ff;
+}
+.snap-action-btn-accent:hover {
+  background: rgba(107,123,255,0.24) !important;
+  color: #c0d0ff !important;
+}
+
+/* ── Repo body: file tree + content pane ──────────────────────────────────── */
+.repo-snap-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.repo-file-panel {
+  width: 260px;
+  min-width: 180px;
+  max-width: 340px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  background: rgba(4,6,14,0.75);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tree-search-wrap {
+  padding: 10px 10px 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.tree-search {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 7px;
+  color: #f7f8fb;
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.tree-search:focus { border-color: rgba(107,123,255,0.5); }
+.tree-search::placeholder { color: rgba(247,248,251,0.3); }
+
+.tree-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 1px 4px;
+  min-height: 28px;
+  user-select: none;
+  transition: background 0.1s;
+}
+.tree-row:hover { background: rgba(255,255,255,0.06); }
+
+.tree-folder-hdr {
+  color: rgba(247,248,251,0.8);
+}
+
+.tree-chevron {
+  font-size: 0.6rem;
+  color: rgba(247,248,251,0.35);
+  width: 10px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tree-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tree-label {
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  color: rgba(247,248,251,0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-file { color: rgba(247,248,251,0.65); }
+
+.tree-file-active {
+  background: rgba(107,123,255,0.18) !important;
+}
+.tree-file-active .tree-label { color: #c0ccff; }
+
+.tree-children { padding: 0; }
+
+.repo-content-pane {
+  flex: 1;
+  overflow-y: auto;
+  background: rgba(8,10,20,0.6);
+  min-width: 0;
+}
+
+/* ── Welcome pane ─────────────────────────────────────────────────────────── */
+.repo-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 32px;
+  height: 100%;
+  min-height: 300px;
+  color: rgba(247,248,251,0.55);
+  gap: 12px;
+}
+.repo-welcome-icon { font-size: 3rem; line-height: 1; }
+.repo-welcome h3   { margin: 0; color: #f7f8fb; font-size: 1.1rem; }
+.repo-welcome p    { margin: 0; font-size: 0.88rem; line-height: 1.7; }
+.repo-welcome-hint { color: rgba(247,248,251,0.4); font-size: 0.82rem !important; }
+
+/* ── README viewer ────────────────────────────────────────────────────────── */
+.readme-view {
+  padding: 32px 44px;
+  max-width: 800px;
+  line-height: 1.75;
+  color: rgba(247,248,251,0.88);
+  font-size: 0.92rem;
+}
+.readme-view h1 { font-size: 1.8rem; margin: 0 0 20px; color: #f7f8fb; }
+.readme-view h2 { font-size: 1.35rem; margin: 28px 0 12px; color: #f7f8fb; }
+.readme-view h3 { font-size: 1.1rem; margin: 22px 0 10px; color: #f7f8fb; }
+.readme-view p  { margin: 0 0 14px; }
+.readme-view pre {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 14px 18px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.82rem;
+  margin: 14px 0;
+}
+.readme-view code {
+  background: rgba(107,123,255,0.12);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.85em;
+  color: #a0b0ff;
+}
+.readme-view ul { padding-left: 24px; margin: 10px 0 14px; }
+.readme-view li { margin-bottom: 4px; }
+.readme-view strong { color: #f7f8fb; }
+
+/* ── Commit log (snapshot history) ───────────────────────────────────────── */
+.commit-log {
+  display: flex;
+  flex-direction: column;
+}
+
+.commit-row {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+}
+
+.commit-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.commit-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.35);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.commit-dot-latest {
+  background: #6b7bff;
+  border-color: #a0b0ff;
+  box-shadow: 0 0 8px rgba(107,123,255,0.5);
+}
+
+.commit-line {
+  width: 2px;
+  flex: 1;
+  background: rgba(255,255,255,0.09);
+  margin-top: 2px;
+}
+
+.commit-info {
+  flex: 1;
+  padding: 8px 12px 16px;
+  min-width: 0;
+}
+
+.commit-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.commit-name {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.85rem;
+  color: #a0b0ff;
+  text-decoration: none;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.commit-name:hover { color: #c0ccff; text-decoration: underline; }
+
+.commit-badge-latest {
+  display: inline-block;
+  padding: 1px 8px;
+  background: rgba(107,123,255,0.18);
+  border: 1px solid rgba(107,123,255,0.35);
+  border-radius: 20px;
+  font-size: 0.68rem;
+  color: #a0b0ff;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.commit-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.78rem;
+  color: rgba(247,248,251,0.4);
+}
+
+.commit-actions {
+  padding: 10px 0 10px 8px;
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.commit-btn {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(247,248,251,0.6);
+  font-size: 0.78rem;
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.commit-btn:hover { background: rgba(107,123,255,0.15); color: #a0b0ff; border-color: rgba(107,123,255,0.3); }
+
+/* ── Terminal panel ───────────────────────────────────────────────────────── */
+.terminal-panel {
+  position: fixed;
+  bottom: 0;
+  left: 220px;
+  right: 0;
+  height: 320px;
+  background: #0d0d1a;
+  border-top: 1px solid rgba(107,123,255,0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 500;
+  transform: translateY(100%);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.terminal-panel.open {
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 36px;
+  background: #151525;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.terminal-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.t-red    { background: #ff5f57; }
+.t-yellow { background: #ffbd2e; }
+.t-green  { background: #28ca41; }
+
+.terminal-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: rgba(247,248,251,0.35);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.terminal-btn {
+  padding: 3px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: rgba(247,248,251,0.55);
+  font-size: 0.73rem;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.terminal-btn:hover { background: rgba(255,255,255,0.12); color: #f7f8fb; }
+
+.terminal-btn-close {
+  width: 26px;
+  padding: 3px 0;
+  text-align: center;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  min-height: 0;
+  scroll-behavior: smooth;
+}
+
+.terminal-line {
+  display: block;
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0 0 2px;
+}
+
+.terminal-line-info   { color: rgba(160,176,255,0.85); }
+.terminal-line-prompt { color: rgba(247,248,251,0.4); }
+.terminal-line-result { color: rgba(247,248,251,0.82); }
+.terminal-line-error  { color: #ff7070; }
+.terminal-line-diff   { color: rgba(247,248,251,0.82); }
+
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+
+.terminal-prompt {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.82rem;
+  color: #6b7bff;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f7f8fb;
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.82rem;
+  outline: none;
+  caret-color: #6b7bff;
+}
+.terminal-input::placeholder { color: rgba(247,248,251,0.25); }
+
+/* ── Overlay modals ───────────────────────────────────────────────────────── */
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.overlay-modal[hidden] { display: none; }
+
+.overlay-modal-box {
+  background: #0d0d1f;
+  border: 1px solid rgba(107,123,255,0.25);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+}
+
+.overlay-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.overlay-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f7f8fb;
+  margin: 0;
+}
+
+.overlay-modal-close {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,0.07);
+  border: none;
+  border-radius: 6px;
+  color: rgba(247,248,251,0.6);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.1s, color 0.1s;
+}
+.overlay-modal-close:hover { background: rgba(255,255,255,0.14); color: #f7f8fb; }
+
+.overlay-modal-body {
+  flex: 1;
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.overlay-modal-sub {
+  margin: 0 0 14px;
+  color: rgba(247,248,251,0.5);
+  font-size: 0.85rem;
+}
+
+.overlay-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #f7f8fb;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+.overlay-select:focus { border-color: rgba(107,123,255,0.5); }
+
+.overlay-btn-primary {
+  padding: 9px 22px;
+  background: #4f6dff;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.overlay-btn-primary:hover { background: #5f7dff; }
+
+.overlay-error {
+  color: #ff7070;
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+
+/* ── Diff styles ──────────────────────────────────────────────────────────── */
+.diff-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.diff-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.diff-added-badge    { background: rgba(57,216,140,0.12); color: #5dd8a0; border-color: rgba(57,216,140,0.25); }
+.diff-removed-badge  { background: rgba(255,100,100,0.12); color: #ff7878; border-color: rgba(255,100,100,0.25); }
+.diff-modified-badge { background: rgba(255,180,50,0.12); color: #ffb040; border-color: rgba(255,180,50,0.25); }
+.diff-unchanged-badge { background: rgba(255,255,255,0.06); color: rgba(247,248,251,0.5); border-color: rgba(255,255,255,0.1); }
+
+.diff-group { margin-bottom: 16px; }
+
+.diff-group-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.diff-added-label    { color: #5dd8a0; }
+.diff-removed-label  { color: #ff7878; }
+.diff-modified-label { color: #ffb040; }
+
+.diff-item {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-bottom: 2px;
+}
+.diff-item-added    { background: rgba(57,216,140,0.08); color: #5dd8a0; }
+.diff-item-removed  { background: rgba(255,100,100,0.08); color: #ff7878; }
+.diff-item-modified { background: rgba(255,180,50,0.08); color: #ffb040; }
+
+/* ── Verify styles ────────────────────────────────────────────────────────── */
+.verify-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(107,123,255,0.2);
+  border-top-color: #6b7bff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 16px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.verify-badge {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.verify-badge-ok   { background: rgba(57,216,140,0.12); color: #5dd8a0; border: 1px solid rgba(57,216,140,0.25); }
+.verify-badge-fail { background: rgba(255,100,100,0.12); color: #ff7878; border: 1px solid rgba(255,100,100,0.25); }
+
+.verify-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.verify-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.verify-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: background 0.1s;
+}
+.verify-row:hover { background: rgba(255,255,255,0.03); }
+
+.verify-icon {
+  width: 16px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.verify-ok   { color: #5dd8a0; }
+.verify-fail { color: #ff7878; }
+.verify-skip { color: rgba(247,248,251,0.3); }
+
+.verify-file {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.78rem;
+  color: rgba(247,248,251,0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Dashboard activity feed ──────────────────────────────────────────────── */
+.dash-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.activity-feed {
+  background: rgba(4,6,14,0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.activity-feed-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.activity-feed-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(247,248,251,0.45);
+  margin: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.1s;
+  text-decoration: none;
+  color: inherit;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover { background: rgba(255,255,255,0.025); }
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(107,123,255,0.12);
+  border: 1px solid rgba(107,123,255,0.2);
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.activity-body { flex: 1; min-width: 0; }
+
+.activity-snap {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.8rem;
+  color: #a0b0ff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-repo {
+  font-size: 0.74rem;
+  color: rgba(247,248,251,0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.activity-meta {
+  font-size: 0.73rem;
+  color: rgba(247,248,251,0.35);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* ── Sidebar terminal button ──────────────────────────────────────────────── */
+.sidebar-terminal-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  margin-top: 6px;
+  border-radius: 10px;
+  color: rgba(160,176,255,0.7);
+  background: rgba(107,123,255,0.08);
+  border: 1px solid rgba(107,123,255,0.15);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-terminal-btn:hover {
+  background: rgba(107,123,255,0.18);
+  color: #a0b0ff;
+}
+
+/* ── Mobile responsive for repo snap ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .repo-snap-body { flex-direction: column; }
+  .repo-file-panel { width: 100%; max-width: none; height: 200px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .terminal-panel { left: 0; }
+  .repo-snap-bar { gap: 6px; }
+  .repo-snap-actions { margin-left: 0; width: 100%; }
+}
