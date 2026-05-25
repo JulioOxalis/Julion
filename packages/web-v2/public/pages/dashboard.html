@@ -14,6 +14,13 @@
 <body class="dashboard-body">
 <div class="dashboard-layout">
 
+  <!-- Mobile top bar -->
+  <div class="mobile-topbar">
+    <button class="mobile-menu-btn" id="menuToggle" aria-label="Toggle sidebar">&#9776;</button>
+    <span class="mobile-topbar-title">Julion</span>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <!-- Sidebar injected by JS -->
   <div id="sidebar"></div>
 
@@ -48,5 +55,14 @@
 
 </div>
 <script type="module" src="/js/dashboard.js"></script>
+<script>
+  const toggle = document.getElementById('menuToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+  const sidebar = document.getElementById('sidebar');
+  function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+  toggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+  overlay.addEventListener('click', closeSidebar);
+</script>
 </body>
 </html>

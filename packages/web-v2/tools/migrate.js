@@ -67,7 +67,7 @@ async function migrateUsers(sql, db) {
   let ok = 0, skip = 0;
   for (const row of rows) {
     try {
-      await db.collection("users").updateOne(
+      await db.collection("members").updateOne(
         { email: row.email },
         {
           $set: {
@@ -163,7 +163,7 @@ async function migrateSessions(sql, db) {
 
 async function ensureIndexes(db) {
   console.log("\n── indexes ────────────────────────────────────");
-  await db.collection("users").createIndex({ email: 1 }, { unique: true }).catch(() => {});
+  await db.collection("members").createIndex({ email: 1 }, { unique: true }).catch(() => {});
   await db.collection("user_tokens").createIndex({ userEmail: 1 }, { unique: true }).catch(() => {});
   await db.collection("auth_sessions").createIndex({ sessionId: 1 }, { unique: true }).catch(() => {});
   await db.collection("auth_sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch(() => {});
@@ -175,12 +175,12 @@ async function ensureIndexes(db) {
 
 async function verify(db) {
   const [users, tokens, sessions] = await Promise.all([
-    db.collection("users").countDocuments(),
+    db.collection("members").countDocuments(),
     db.collection("user_tokens").countDocuments(),
     db.collection("auth_sessions").countDocuments(),
   ]);
   console.log("\n── MongoDB counts ─────────────────────────────");
-  console.log(`   users:         ${users}`);
+  console.log(`   members:         ${users}`);
   console.log(`   user_tokens:   ${tokens}`);
   console.log(`   auth_sessions: ${sessions}`);
 }
@@ -194,7 +194,7 @@ async function main() {
   const [db, sql] = await Promise.all([connectMongo(), connectMySQL()]);
 
   // Always ensure collections + indexes (even if no MySQL data)
-  for (const name of ["users", "user_tokens", "auth_sessions"]) {
+  for (const name of ["members", "user_tokens", "auth_sessions"]) {
     await db.createCollection(name).catch(() => {});
   }
   await ensureIndexes(db);

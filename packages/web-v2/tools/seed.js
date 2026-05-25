@@ -13,13 +13,13 @@ async function seed() {
   console.log(`\nConnected to database: ${process.env.DB_NAME}`);
 
   // ── Create collections ─────────────────────────────────────────────────────
-  for (const name of ["users", "user_tokens", "auth_sessions"]) {
+  for (const name of ["members", "user_tokens", "auth_sessions"]) {
     await db.createCollection(name).catch(() => {}); // ignore "already exists"
     console.log(`  collection: ${name}`);
   }
 
   // ── Indexes ────────────────────────────────────────────────────────────────
-  await db.collection("users").createIndex({ email: 1 }, { unique: true });
+  await db.collection("members").createIndex({ email: 1 }, { unique: true });
   await db.collection("user_tokens").createIndex({ userEmail: 1 }, { unique: true });
   await db.collection("auth_sessions").createIndex({ sessionId: 1 }, { unique: true });
 
@@ -34,11 +34,11 @@ async function seed() {
 
   // ── Optional test data ─────────────────────────────────────────────────────
   if (process.env.SEED_TEST_DATA === "true") {
-    await db.collection("users").insertMany([
+    await db.collection("members").insertMany([
       { email: "test1@example.com", name: "Test User 1", picture: null, createdAt: new Date() },
       { email: "test2@example.com", name: "Test User 2", picture: null, createdAt: new Date() },
     ]).catch(() => {});
-    console.log("  Test users inserted.");
+    console.log("  Test members inserted.");
   }
 
   console.log("\nDatabase seeded successfully.\n");

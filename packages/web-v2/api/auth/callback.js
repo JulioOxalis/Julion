@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     const db = (await clientPromise).db(process.env.DB_NAME);
 
     // Upsert user
-    await db.collection("users").updateOne(
+    await db.collection("members").updateOne(
       { email: user.email },
       {
         $set:         { name: user.name, picture: user.picture, lastLoginAt: new Date() },

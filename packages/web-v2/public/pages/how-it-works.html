@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>How it works &amp; CLI Reference · Julion</title>
+  <meta name="description" content="Learn how Julion works and explore the full CLI command reference — begin, seal, unseal, deposit, fetch, connect."/>
+  <meta name="theme-color" content="#6b7bff"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="stylesheet" href="/styles.css"/>
+  <style>
+    .doc-layout { display: grid; grid-template-columns: 220px 1fr; gap: 0; max-width: 1100px; margin: 0 auto; padding: 0 32px 80px; }
+    .doc-sidebar { position: sticky; top: 80px; height: fit-content; padding: 40px 0 0; }
+    .doc-sidebar-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #aaa; margin: 0 0 12px; }
+    .doc-sidebar ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    .doc-sidebar a { display: block; padding: 7px 12px; border-radius: 8px; font-size: 0.85rem; color: #555; text-decoration: none; transition: background 0.1s, color 0.1s; }
+    .doc-sidebar a:hover { background: rgba(107,123,255,0.08); color: #6b7bff; }
+    .doc-sidebar a.active { background: rgba(107,123,255,0.12); color: #6b7bff; font-weight: 600; }
+    .doc-sidebar .doc-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 10px 0; }
+    .doc-content { padding: 40px 0 0 48px; border-left: 1px solid rgba(0,0,0,0.07); min-width: 0; }
+    .doc-section { margin-bottom: 72px; }
+    .doc-section:target .doc-section-title { color: #6b7bff; }
+    .doc-section-title { font-size: 1.6rem; font-weight: 800; color: #0f0f1a; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .doc-section-sub { color: #666; font-size: 0.95rem; margin: 0 0 28px; line-height: 1.6; }
+    .cmd-block { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
+    .cmd-block + .cmd-block { margin-top: 20px; }
+    .cmd-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+    .cmd-name { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 1.05rem; font-weight: 700; color: #6b7bff; }
+    .cmd-badge { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: rgba(107,123,255,0.1); color: #6b7bff; white-space: nowrap; flex-shrink: 0; }
+    .cmd-desc { color: #444; font-size: 0.9rem; line-height: 1.65; margin: 0 0 16px; }
+    .cmd-usage { background: #1a1a2e; border-radius: 10px; padding: 12px 18px; font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.83rem; color: #a0b0ff; margin-bottom: 16px; overflow-x: auto; white-space: pre; }
+    .cmd-options { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-options th { text-align: left; padding: 6px 12px 6px 0; color: #999; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.07); }
+    .cmd-options td { padding: 9px 12px 9px 0; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: top; }
+    .cmd-options tr:last-child td { border-bottom: none; }
+    .cmd-options .opt-flag { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.8rem; color: #6b7bff; white-space: nowrap; }
+    .cmd-options .opt-desc { color: #555; }
+    .cmd-options .opt-default { color: #aaa; font-size: 0.78rem; }
+    .cmd-examples { margin-top: 16px; }
+    .cmd-examples-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 8px; }
+    .cmd-ex { background: #f0f0f5; border-radius: 8px; padding: 10px 14px; font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.8rem; color: #333; margin-bottom: 6px; overflow-x: auto; white-space: pre; }
+    .cmd-ex:last-child { margin-bottom: 0; }
+    .lp-diagram { max-width: 100%; margin: 0 0 32px; overflow-x: auto; }
+    .lp-diagram-svg { width: 100%; max-width: 800px; height: auto; display: block; }
+    .flow-steps { display: flex; flex-direction: column; gap: 28px; }
+    .flow-step { display: flex; gap: 20px; align-items: flex-start; }
+    .flow-step-num { width: 40px; height: 40px; border-radius: 50%; background: #6b7bff; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
+    .flow-step-body h3 { font-size: 1rem; font-weight: 700; color: #0f0f1a; margin: 0 0 6px; }
+    .flow-step-body p { color: #555; font-size: 0.88rem; line-height: 1.6; margin: 0; }
+    @media (max-width: 768px) {
+      .doc-layout { grid-template-columns: 1fr; padding: 0 20px 60px; }
+      .doc-sidebar { display: none; }
+      .doc-content { padding: 32px 0 0; border-left: none; }
+      .cmd-header { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body class="lp-body">
+
+<nav class="lp-nav" role="navigation" aria-label="Main">
+  <a class="lp-nav-brand" href="/">
+    <img src="/images/julion-logo.png" alt="Julion" class="lp-logo-img" onerror="this.style.display='none'"/>
+  </a>
+  <button class="lp-menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="lp-nav-links" id="navLinks" role="list">
+    <li><a href="/how-it-works" class="lp-nav-active">How it works</a></li>
+    <li><a href="/features">Features</a></li>
+    <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
+  </ul>
+  <a class="lp-nav-cta" href="/api/auth/google">Sign in</a>
+</nav>
+
+<div class="lp-page-hero" style="text-align:center;padding:64px 32px 48px;">
+  <div class="lp-eyebrow">Documentation</div>
+  <h1 class="lp-page-title">How Julion works</h1>
+  <p class="lp-page-lead">Full workflow guide &amp; CLI command reference</p>
+</div>
+
+<div class="doc-layout">
+
+  <!-- Sidebar nav -->
+  <aside class="doc-sidebar" aria-label="Documentation navigation">
+    <p class="doc-sidebar-title">Overview</p>
+    <ul>
+      <li><a href="#overview">The workflow</a></li>
+      <li><a href="#install">Installation</a></li>
+    </ul>
+    <div class="doc-divider"></div>
+    <p class="doc-sidebar-title">Commands</p>
+    <ul>
+      <li><a href="#cmd-begin">julion begin</a></li>
+      <li><a href="#cmd-connect">julion connect</a></li>
+      <li><a href="#cmd-seal">julion seal</a></li>
+      <li><a href="#cmd-deposit">julion deposit</a></li>
+      <li><a href="#cmd-fetch">julion fetch</a></li>
+      <li><a href="#cmd-unseal">julion unseal</a></li>
+    </ul>
+    <div class="doc-divider"></div>
+    <ul>
+      <li><a href="#workflows">Common workflows</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <div class="doc-content">
+
+    <!-- Overview -->
+    <section class="doc-section" id="overview">
+      <h2 class="doc-section-title">The workflow</h2>
+      <p class="doc-section-sub">Julion turns any project into a portable <code>.on</code> container — a gzipped archive with checksums and a binary signature header. Containers live in your own Google Drive under a structured folder hierarchy.</p>
+
+      <div class="lp-diagram">
+        <svg class="lp-diagram-svg" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="80" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">YOUR PROJECT</text>
+          <rect x="0" y="40" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="80" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Node.js project</text>
+          <rect x="0" y="96" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="80" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Python app</text>
+          <rect x="0" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="80" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Any codebase</text>
+          <path d="M160 58 C260 58,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <path d="M160 114 C240 114,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <path d="M160 170 C260 170,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <rect x="360" y="88" width="160" height="64" rx="16" fill="#6b7bff"/>
+          <text x="440" y="117" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="17" font-weight="800" fill="#fff">.on</text>
+          <text x="440" y="137" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.72)" letter-spacing="1">Seals · Stores · Restores</text>
+          <path d="M520 120 C600 120,620 58,720 58" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <path d="M520 120 C600 120,620 114,720 114" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <path d="M520 120 C600 120,620 170,720 170" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
+          <text x="800" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">ANYWHERE</text>
+          <rect x="720" y="40" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="800" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Your laptop</text>
+          <rect x="720" y="96" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="800" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Team server</text>
+          <rect x="720" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
+          <text x="800" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">CI / cloud VM</text>
+        </svg>
+      </div>
+
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-body">
+            <h3>Initialize &amp; connect</h3>
+            <p>Run <code>julion begin</code> inside your project, then <code>julion connect google</code> to link your Google account. Julion stores your Drive token locally — no servers involved.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-body">
+            <h3>Seal your project</h3>
+            <p>Run <code>julion seal</code> to compress the entire file tree into a <code>.on</code> container. Each file gets a checksum. The archive is portable and self-contained.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-body">
+            <h3>Deposit to Drive</h3>
+            <p>Run <code>julion deposit</code> to push the container to Google Drive under <code>JULION/&lt;repository&gt;/</code>. Use <code>--deposit</code> on seal to do both in one command.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-body">
+            <h3>Fetch &amp; restore anywhere</h3>
+            <p>On any machine, run <code>julion fetch</code> to pull the snapshot from Drive, then <code>julion unseal</code> to restore the full file tree with checksum verification.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section class="doc-section" id="install">
+      <h2 class="doc-section-title">Installation</h2>
+      <p class="doc-section-sub">Install the Julion CLI globally via npm. Node.js 18 or later required.</p>
+      <div class="cmd-usage">npm install -g julion</div>
+      <p style="color:#555;font-size:0.9rem;">Verify installation:</p>
+      <div class="cmd-usage">julion --version</div>
+    </section>
+
+    <!-- begin -->
+    <section class="doc-section" id="cmd-begin">
+      <h2 class="doc-section-title">julion begin</h2>
+      <p class="doc-section-sub">Initialize Julion in the current project directory. Creates the necessary config files and registers the project.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion begin</span>
+          <span class="cmd-badge">Setup</span>
+        </div>
+        <p class="cmd-desc">Run this once inside a project before using any other Julion commands. It sets up the local Julion configuration for the project.</p>
+        <div class="cmd-usage">julion begin</div>
+        <p class="cmd-desc" style="margin:0;">No options or arguments required.</p>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Example</div>
+          <div class="cmd-ex">cd my-project
+julion begin</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- connect -->
+    <section class="doc-section" id="cmd-connect">
+      <h2 class="doc-section-title">julion connect</h2>
+      <p class="doc-section-sub">Authenticate with a cloud provider. Currently supports Google Drive. Your credentials are stored locally and never sent to Julion servers.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion connect &lt;provider&gt;</span>
+          <span class="cmd-badge">Auth</span>
+        </div>
+        <p class="cmd-desc">Opens a browser-based OAuth flow to authenticate with the specified provider. After authentication, Julion stores your access token locally so you can use Drive commands.</p>
+        <div class="cmd-usage">julion connect &lt;provider&gt; [options]</div>
+        <table class="cmd-options">
+          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="opt-flag">&lt;provider&gt;</td>
+              <td class="opt-desc">Cloud provider to authenticate with. Currently supports: <code>google</code></td>
+              <td class="opt-default">required</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">--website</td>
+              <td class="opt-desc">Authenticate via the Julion website login flow instead of the CLI-native flow. Opens <code>julion.julio.co.tz</code> and polls for completion.</td>
+              <td class="opt-default">false</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Examples</div>
+          <div class="cmd-ex"># Standard CLI auth (opens browser inline)
+julion connect google</div>
+          <div class="cmd-ex"># Website-based auth flow
+julion connect google --website</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- seal -->
+    <section class="doc-section" id="cmd-seal">
+      <h2 class="doc-section-title">julion seal</h2>
+      <p class="doc-section-sub">Create a <code>.on</code> snapshot of the current project. Walks the file tree, computes checksums, and compresses everything into a single portable container.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion seal [options]</span>
+          <span class="cmd-badge">Core</span>
+        </div>
+        <p class="cmd-desc">Seals the current working directory into a <code>.on</code> archive. The archive contains the full file tree, file metadata, and per-file checksums. Can optionally upload to Drive immediately after sealing.</p>
+        <div class="cmd-usage">julion seal [options]</div>
+        <table class="cmd-options">
+          <thead><tr><th>Option</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="opt-flag">--ultra</td>
+              <td class="opt-desc">Run the full ultra pipeline — maximum compression and metadata collection.</td>
+              <td class="opt-default">false</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">-o, --out &lt;path&gt;</td>
+              <td class="opt-desc">Output path for the generated <code>.on</code> file.</td>
+              <td class="opt-default">&lt;projectName&gt;.on</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">--deposit</td>
+              <td class="opt-desc">Upload the snapshot to Google Drive immediately after sealing. Requires <code>--repository</code>.</td>
+              <td class="opt-default">false</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">--repository &lt;name&gt;</td>
+              <td class="opt-desc">Drive repository folder name (used with <code>--deposit</code>). The snapshot is stored under <code>JULION/&lt;name&gt;/</code> in your Drive.</td>
+              <td class="opt-default">—</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Examples</div>
+          <div class="cmd-ex"># Basic seal to current directory
+julion seal</div>
+          <div class="cmd-ex"># Seal with custom output path
+julion seal -o ./snapshots/v1.on</div>
+          <div class="cmd-ex"># Seal and immediately upload to Drive
+julion seal --deposit --repository my-app</div>
+          <div class="cmd-ex"># Full ultra pipeline + upload
+julion seal --ultra --deposit --repository my-app</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- deposit -->
+    <section class="doc-section" id="cmd-deposit">
+      <h2 class="doc-section-title">julion deposit</h2>
+      <p class="doc-section-sub">Upload an existing <code>.on</code> snapshot to Google Drive. The file is stored under <code>JULION/&lt;repository&gt;/</code> in your Drive.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion deposit &lt;snapshot&gt; [repository]</span>
+          <span class="cmd-badge">Drive</span>
+        </div>
+        <p class="cmd-desc">Pushes a local <code>.on</code> file to your Google Drive. Requires prior authentication via <code>julion connect google</code>. Organises snapshots by repository name.</p>
+        <div class="cmd-usage">julion deposit &lt;snapshot&gt; [repository]</div>
+        <table class="cmd-options">
+          <thead><tr><th>Argument</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="opt-flag">&lt;snapshot&gt;</td>
+              <td class="opt-desc">Path to the local <code>.on</code> snapshot file to upload.</td>
+              <td class="opt-default">required</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">[repository]</td>
+              <td class="opt-desc">Drive folder name to store the snapshot under. Creates the folder if it doesn't exist.</td>
+              <td class="opt-default">optional</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Examples</div>
+          <div class="cmd-ex"># Upload snapshot to a named repository
+julion deposit my-app-v1.on my-app</div>
+          <div class="cmd-ex"># Upload without a repository name
+julion deposit my-app-v1.on</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- fetch -->
+    <section class="doc-section" id="cmd-fetch">
+      <h2 class="doc-section-title">julion fetch</h2>
+      <p class="doc-section-sub">Download a <code>.on</code> snapshot from Google Drive to your local machine.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion fetch &lt;repository&gt; &lt;snapshot&gt; [options]</span>
+          <span class="cmd-badge">Drive</span>
+        </div>
+        <p class="cmd-desc">Pulls a specific snapshot file from your Google Drive repository. Use <code>julion unseal</code> afterwards to restore it.</p>
+        <div class="cmd-usage">julion fetch &lt;repository&gt; &lt;snapshot&gt; [options]</div>
+        <table class="cmd-options">
+          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="opt-flag">&lt;repository&gt;</td>
+              <td class="opt-desc">Name of the Drive repository folder that contains the snapshot.</td>
+              <td class="opt-default">required</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">&lt;snapshot&gt;</td>
+              <td class="opt-desc">Filename of the <code>.on</code> snapshot to download from Drive.</td>
+              <td class="opt-default">required</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">-o, --out &lt;path&gt;</td>
+              <td class="opt-desc">Local destination path for the downloaded file.</td>
+              <td class="opt-default">snapshot filename in cwd</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Examples</div>
+          <div class="cmd-ex"># Download to current directory
+julion fetch my-app my-app-v1.on</div>
+          <div class="cmd-ex"># Download to a specific path
+julion fetch my-app my-app-v1.on -o ./downloads/v1.on</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- unseal -->
+    <section class="doc-section" id="cmd-unseal">
+      <h2 class="doc-section-title">julion unseal</h2>
+      <p class="doc-section-sub">Restore a <code>.on</code> snapshot into a target directory. Verifies checksums on every file during extraction.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">julion unseal &lt;snapshot&gt; [target] [options]</span>
+          <span class="cmd-badge">Core</span>
+        </div>
+        <p class="cmd-desc">Extracts the full file tree from a <code>.on</code> container into a target directory. Each restored file is verified against its stored checksum — if any file is corrupted or tampered with, the restore is aborted.</p>
+        <div class="cmd-usage">julion unseal &lt;snapshot&gt; [target] [options]</div>
+        <table class="cmd-options">
+          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="opt-flag">&lt;snapshot&gt;</td>
+              <td class="opt-desc">Path to the <code>.on</code> snapshot file to restore.</td>
+              <td class="opt-default">required</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">[target]</td>
+              <td class="opt-desc">Directory to restore the project into. Created if it doesn't exist.</td>
+              <td class="opt-default">current directory</td>
+            </tr>
+            <tr>
+              <td class="opt-flag">--force</td>
+              <td class="opt-desc">Overwrite existing files in the target directory without prompting.</td>
+              <td class="opt-default">false</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="cmd-examples">
+          <div class="cmd-examples-label">Examples</div>
+          <div class="cmd-ex"># Restore into current directory
+julion unseal my-app-v1.on</div>
+          <div class="cmd-ex"># Restore into a specific directory
+julion unseal my-app-v1.on ./restored-project</div>
+          <div class="cmd-ex"># Force overwrite existing files
+julion unseal my-app-v1.on ./restored-project --force</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Common workflows -->
+    <section class="doc-section" id="workflows">
+      <h2 class="doc-section-title">Common workflows</h2>
+      <p class="doc-section-sub">Put the commands together for real-world scenarios.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">First-time setup</span>
+          <span class="cmd-badge">Quickstart</span>
+        </div>
+        <div class="cmd-usage">npm install -g julion
+cd my-project
+julion begin
+julion connect google</div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">Snapshot &amp; back up in one command</span>
+          <span class="cmd-badge">Productivity</span>
+        </div>
+        <div class="cmd-usage">julion seal --ultra --deposit --repository my-app</div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">Restore on a new machine</span>
+          <span class="cmd-badge">Restore</span>
+        </div>
+        <div class="cmd-usage">julion connect google
+julion fetch my-app my-app-v1.on -o ./v1.on
+julion unseal ./v1.on ./my-project --force</div>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-name">CI pipeline backup</span>
+          <span class="cmd-badge">CI / CD</span>
+        </div>
+        <div class="cmd-usage">julion connect google --website
+julion seal --deposit --repository ci-builds -o build-$CI_COMMIT_SHA.on</div>
+      </div>
+    </section>
+
+    <div class="lp-page-cta">
+      <a class="lp-hero-cta" href="/api/auth/google">Get started free</a>
+      <a class="lp-hero-secondary" href="/features">See all features</a>
+    </div>
+
+  </div><!-- /doc-content -->
+</div><!-- /doc-layout -->
+
+<footer class="lp-footer" role="contentinfo">
+  <span>
+    <img src="/images/julion-logo.png" alt="" class="lp-footer-logo" onerror="this.style.display='none'"/>
+    Julion &copy; <script>document.write(new Date().getFullYear())</script>
+  </span>
+  <div class="lp-footer-links">
+    <a href="/how-it-works">How it works</a>
+    <a href="/features">Features</a>
+    <a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a>
+  </div>
+</footer>
+
+<script>
+  const btn = document.getElementById('menuBtn');
+  const nav = document.getElementById('navLinks');
+  btn.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+  });
+
+  // Highlight active sidebar link on scroll
+  const sections = document.querySelectorAll('.doc-section');
+  const links = document.querySelectorAll('.doc-sidebar a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.doc-sidebar a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -6,145 +6,103 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <title>Julion — Seal, Store &amp; Restore Your Projects</title>
   <meta name="description" content="Julion is a developer-native snapshot platform. Seal your projects into portable .on containers, store them on Google Drive, and restore them anywhere with one command."/>
-  <meta name="keywords" content="Julion, project snapshots, developer tools, Google Drive backup, code snapshot, restore projects, CLI tools, portable code containers, .on format"/>
-  <meta name="author" content="Julion"/>
   <meta name="robots" content="index, follow, max-image-preview:large"/>
   <meta name="theme-color" content="#6b7bff"/>
-
-  <!-- Open Graph -->
   <meta property="og:type"        content="website"/>
-  <meta property="og:site_name"   content="Julion"/>
   <meta property="og:title"       content="Julion — Seal, Store &amp; Restore Your Projects"/>
   <meta property="og:description" content="Snapshot your entire project into a portable .on container, store it on Google Drive, and restore it anywhere with one command."/>
   <meta property="og:image"       content="/images/julion-og.png"/>
-  <meta property="og:image:type"  content="image/png"/>
-  <meta property="og:image:width" content="1200"/>
-  <meta property="og:image:height" content="630"/>
   <meta property="og:url"         content="/"/>
-  <meta property="og:locale"      content="en_US"/>
-
-  <!-- Twitter / X -->
-  <meta name="twitter:card"        content="summary_large_image"/>
-  <meta name="twitter:site"        content="@julion"/>
-  <meta name="twitter:title"       content="Julion — Seal, Store &amp; Restore Your Projects"/>
-  <meta name="twitter:description" content="Snapshot your entire project into a portable .on container."/>
-  <meta name="twitter:image"       content="/images/julion-og.png"/>
-
-  <!-- Favicons -->
-  <link rel="icon"             type="image/x-icon" href="/images/favicon.ico"/>
-  <link rel="icon"             type="image/png" sizes="32x32" href="/images/favicon-32x32.png"/>
-  <link rel="apple-touch-icon" sizes="180x180"               href="/images/apple-touch-icon.png"/>
-  <link rel="manifest"         href="/manifest.json"/>
-
-  <!-- Performance -->
-  <link rel="preconnect"  href="https://fonts.googleapis.com"/>
-  <link rel="preconnect"  href="https://fonts.gstatic.com" crossorigin=""/>
-
+  <meta name="twitter:card"       content="summary_large_image"/>
+  <meta name="twitter:title"      content="Julion — Seal, Store &amp; Restore Your Projects"/>
+  <meta name="twitter:image"      content="/images/julion-og.png"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link rel="stylesheet" href="/styles.css"/>
-
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Julion","applicationCategory":"DeveloperApplication","operatingSystem":"Web, Linux, macOS, Windows","description":"Developer-native project snapshot platform","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 </head>
 <body class="lp-body">
 
-<!-- ── Navbar ── -->
+<!-- Navbar -->
 <nav class="lp-nav" role="navigation" aria-label="Main">
   <a class="lp-nav-brand" href="/">
-    <img src="/images/julion-logo.png" alt="Julion" width="28" height="28" style="vertical-align:middle;margin-right:8px" onerror="this.style.display='none'"/>
-    JULION
+    <img src="/images/julion-logo.png" alt="Julion" class="lp-logo-img" onerror="this.style.display='none'"/>
   </a>
-  <ul class="lp-nav-links" role="list">
-    <li><a href="#how-it-works">How it works</a></li>
-    <li><a href="#features">Features</a></li>
+  <button class="lp-menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="lp-nav-links" id="navLinks" role="list">
+    <li><a href="/how-it-works">How it works</a></li>
+    <li><a href="/features">Features</a></li>
     <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
   </ul>
   <a class="lp-nav-cta" href="/api/auth/google">Sign in</a>
 </nav>
 
-<!-- ── Hero ── -->
+<!-- Hero -->
 <section class="lp-hero" id="hero" aria-labelledby="hero-heading">
   <div class="lp-eyebrow">Developer-native snapshot platform</div>
   <h1 class="lp-headline" id="hero-heading">
     Seal, Store &amp; Restore<br><span>Any Project. Anywhere.</span>
   </h1>
   <p class="lp-sub">Compress your entire codebase into a portable <strong>.on</strong> container, push it to Google Drive, and restore it on any machine with a single command.</p>
-  <a class="lp-hero-cta" href="/api/auth/google" aria-label="Get started with Julion">
-    Get started free
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </a>
-</section>
-
-<!-- ── Flow diagram ── -->
-<section class="lp-diagram" id="how-it-works" aria-label="How Julion works">
-  <svg class="lp-diagram-svg" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg"
-       role="img" aria-label="Flow: Your Project seals into .on, then restores Anywhere">
-    <!-- Left: inputs -->
-    <text x="80" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">YOUR PROJECT</text>
-    <rect x="0"   y="40"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="80"  y="63"  text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Node.js project</text>
-    <rect x="0"   y="96"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="80"  y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Python app</text>
-    <rect x="0"   y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="80"  y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Any codebase</text>
-    <!-- Curves left → center -->
-    <path d="M160 58 C260 58,280 120,360 120"  stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <path d="M160 114 C240 114,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <path d="M160 170 C260 170,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <!-- Center .on box -->
-    <rect x="360" y="88"  width="160" height="64" rx="16" fill="#6b7bff"/>
-    <text x="440" y="117" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="17" font-weight="800" fill="#fff">.on</text>
-    <text x="440" y="137" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.72)" letter-spacing="1">Seals · Stores · Restores</text>
-    <!-- Curves center → right -->
-    <path d="M520 120 C600 120,620 58,720 58"   stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <path d="M520 120 C600 120,620 114,720 114"  stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <path d="M520 120 C600 120,620 170,720 170"  stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-    <!-- Right: outputs -->
-    <text x="800" y="22"  text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">ANYWHERE</text>
-    <rect x="720" y="40"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="800" y="63"  text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Your laptop</text>
-    <rect x="720" y="96"  width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="800" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Team server</text>
-    <rect x="720" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-    <text x="800" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">CI / cloud VM</text>
-  </svg>
-</section>
-
-<!-- ── Feature cards ── -->
-<section class="lp-features" id="features" aria-labelledby="features-heading">
-  <h2 class="lp-features-heading" id="features-heading">Everything you need, nothing you don't</h2>
-  <div class="lp-cards">
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">&#x1F4E6;</div>
-      <h3 class="lp-card-title">julion seal</h3>
-      <p class="lp-card-desc">Compress your entire project — files, metadata, checksums — into a single portable <code>.on</code> container in seconds.</p>
-      <span class="lp-card-arrow">&#x2192; Snapshot in one command</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">&#x2601;&#xFE0F;</div>
-      <h3 class="lp-card-title">julion deposit</h3>
-      <p class="lp-card-desc">Push your snapshot to Google Drive automatically. Organised under your JULION folder by repository and version.</p>
-      <span class="lp-card-arrow">&#x2192; Backed up to Drive</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">&#x1F504;</div>
-      <h3 class="lp-card-title">julion unseal</h3>
-      <p class="lp-card-desc">Restore any snapshot to any directory on any machine. Full file tree, exact checksums, zero dependencies beyond the CLI.</p>
-      <span class="lp-card-arrow">&#x2192; Restore anywhere</span>
-    </article>
+  <div class="lp-hero-actions">
+    <a class="lp-hero-cta" href="/api/auth/google" aria-label="Get started with Julion">
+      Get started free
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="lp-hero-secondary" href="/how-it-works">See how it works</a>
   </div>
 </section>
 
-<!-- ── Footer ── -->
+<!-- Quick feature highlights -->
+<section class="lp-highlights" aria-label="Key features">
+  <div class="lp-highlights-inner">
+    <div class="lp-highlight">
+      <span class="lp-highlight-icon">📦</span>
+      <div>
+        <strong>julion seal</strong>
+        <p>One command to snapshot your entire project</p>
+      </div>
+    </div>
+    <div class="lp-highlight">
+      <span class="lp-highlight-icon">☁️</span>
+      <div>
+        <strong>julion deposit</strong>
+        <p>Push to Google Drive automatically</p>
+      </div>
+    </div>
+    <div class="lp-highlight">
+      <span class="lp-highlight-icon">🔄</span>
+      <div>
+        <strong>julion unseal</strong>
+        <p>Restore anywhere with zero dependencies</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
 <footer class="lp-footer" role="contentinfo">
   <span>
-    <img src="/images/julion-logo.png" alt="" width="18" height="18" style="vertical-align:middle;margin-right:6px;opacity:0.6" onerror="this.style.display='none'"/>
+    <img src="/images/julion-logo.png" alt="" class="lp-footer-logo" onerror="this.style.display='none'"/>
     Julion &copy; <script>document.write(new Date().getFullYear())</script>
   </span>
   <div class="lp-footer-links">
-    <a href="/sitemap.xml">Sitemap</a>
-    <a href="/robots.txt">Robots</a>
+    <a href="/how-it-works">How it works</a>
+    <a href="/features">Features</a>
     <a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a>
   </div>
 </footer>
 
+<script>
+  const btn = document.getElementById('menuBtn');
+  const nav = document.getElementById('navLinks');
+  btn.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+  });
+</script>
 </body>
 </html>

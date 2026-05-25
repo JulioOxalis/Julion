@@ -4,7 +4,10 @@
   "outputDirectory": "public",
   "buildCommand": "",
   "rewrites": [
-    { "source": "/dashboard",    "destination": "/pages/dashboard.html" },
+    { "source": "/auth/callback",   "destination": "/api/auth/callback" },
+    { "source": "/how-it-works",    "destination": "/pages/how-it-works.html" },
+    { "source": "/features",        "destination": "/pages/features.html" },
+    { "source": "/dashboard",       "destination": "/pages/dashboard.html" },
     { "source": "/repositories", "destination": "/pages/repositories.html" },
     { "source": "/repository",   "destination": "/pages/repository.html" },
     { "source": "/auth-complete","destination": "/pages/auth-complete.html" }

@@ -18,7 +18,7 @@ async function db() {
 
 const commands = {
   async "list-users"() {
-    const users = await (await db()).collection("users").find().sort({ lastLoginAt: -1 }).toArray();
+    const users = await (await db()).collection("members").find().sort({ lastLoginAt: -1 }).toArray();
     console.log(`\n${users.length} user(s):\n`);
     users.forEach((u) =>
       console.log(`  ${u.email.padEnd(40)} ${(u.name || "").padEnd(28)} last login: ${u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : "never"}`)
@@ -52,7 +52,7 @@ const commands = {
       process.exit(1);
     }
     const d = await db();
-    await d.collection("users").deleteOne({ email });
+    await d.collection("members").deleteOne({ email });
     await d.collection("user_tokens").deleteOne({ userEmail: email });
     await d.collection("auth_sessions").deleteMany({ userEmail: email });
     console.log(`\nDeleted user: ${email}`);
@@ -61,7 +61,7 @@ const commands = {
   async "stats"() {
     const d = await db();
     const [users, tokens, sessions] = await Promise.all([
-      d.collection("users").countDocuments(),
+      d.collection("members").countDocuments(),
       d.collection("user_tokens").countDocuments(),
       d.collection("auth_sessions").countDocuments(),
     ]);
