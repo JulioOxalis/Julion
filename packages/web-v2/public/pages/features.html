@@ -9,95 +9,179 @@
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
   <link rel="manifest" href="/manifest.json"/>
   <link rel="stylesheet" href="/styles.css"/>
-</head>
-<body class="lp-body">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,sans-serif;background:#07070f;color:#f0f0ff;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
 
-<nav class="lp-nav" role="navigation" aria-label="Main">
-  <a class="lp-nav-brand" href="/">
-    <img src="/images/julion-logo.png" alt="Julion" class="lp-logo-img" onerror="this.style.display='none'"/>
-  </a>
-  <button class="lp-menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-  <ul class="lp-nav-links" id="navLinks" role="list">
+    /* Nav */
+    .hp-nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(7,7,15,0.7);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100}
+    .hp-logo{height:40px;width:auto;filter:brightness(0) invert(1)}
+    .hp-nav-links{display:flex;gap:32px;list-style:none}
+    .hp-nav-links a{font-size:0.875rem;font-weight:500;color:rgba(240,240,255,0.55);transition:color 0.15s}
+    .hp-nav-links a:hover,.hp-nav-links a.active{color:#f0f0ff}
+    .hp-nav-links a.active{color:#a0b0ff}
+    .hp-nav-cta{display:inline-flex;align-items:center;gap:8px;padding:9px 22px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:600;transition:background 0.15s,transform 0.1s}
+    .hp-nav-cta:hover{background:#5567ee;transform:translateY(-1px)}
+    .hp-menu-btn{display:none;flex-direction:column;justify-content:space-between;width:26px;height:18px;background:none;border:none;cursor:pointer;padding:0}
+    .hp-menu-btn span{display:block;width:100%;height:2px;background:rgba(240,240,255,0.6);border-radius:2px}
+
+    /* Page hero */
+    .pg-hero{position:relative;text-align:center;padding:96px 24px 72px;overflow:hidden}
+    .pg-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(107,123,255,0.2) 0%,transparent 70%)}
+    .pg-hero-inner{position:relative;z-index:1}
+    .pg-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(107,123,255,0.12);border:1px solid rgba(107,123,255,0.3);border-radius:999px;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#a0b0ff;margin-bottom:24px}
+    .pg-title{font-size:clamp(2.4rem,5vw+0.5rem,4rem);font-weight:900;letter-spacing:-0.03em;line-height:1.05;margin-bottom:18px}
+    .pg-title .grad{background:linear-gradient(135deg,#a0b0ff 0%,#6b7bff 50%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .pg-lead{font-size:1.05rem;color:rgba(240,240,255,0.55);max-width:520px;margin:0 auto;line-height:1.75}
+
+    /* Features grid */
+    .feat-section{max-width:1080px;margin:0 auto;padding:0 32px 100px}
+    .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .feat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px 28px;transition:border-color 0.2s,background 0.2s,transform 0.15s;display:flex;flex-direction:column}
+    .feat-card:hover{border-color:rgba(107,123,255,0.4);background:rgba(107,123,255,0.07);transform:translateY(-4px)}
+    .feat-card-icon{width:52px;height:52px;border-radius:16px;background:rgba(107,123,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px;flex-shrink:0}
+    .feat-card-title{font-size:1.05rem;font-weight:700;color:#f0f0ff;margin-bottom:12px}
+    .feat-card-desc{font-size:0.875rem;color:rgba(240,240,255,0.5);line-height:1.75;flex:1;margin-bottom:18px}
+    .feat-card-tag{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.78rem;color:#6b7bff;font-weight:600;padding:4px 10px;background:rgba(107,123,255,0.1);border-radius:6px;display:inline-block}
+
+    /* CTA */
+    .pg-cta-wrap{padding:0 32px 80px}
+    .pg-cta{max-width:720px;margin:0 auto;background:linear-gradient(135deg,rgba(107,123,255,0.14),rgba(168,85,247,0.09));border:1px solid rgba(107,123,255,0.22);border-radius:24px;padding:56px 40px;text-align:center}
+    .pg-cta h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;margin-bottom:12px}
+    .pg-cta p{color:rgba(240,240,255,0.5);margin-bottom:32px;font-size:0.95rem}
+    .btn-primary{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.95rem;font-weight:700;box-shadow:0 0 32px rgba(107,123,255,0.35);transition:background 0.15s,transform 0.1s,box-shadow 0.15s}
+    .btn-primary:hover{background:#5567ee;transform:translateY(-2px);box-shadow:0 0 48px rgba(107,123,255,0.5)}
+    .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(240,240,255,0.75);border-radius:999px;font-size:0.95rem;font-weight:600;transition:background 0.15s}
+    .btn-ghost:hover{background:rgba(255,255,255,0.1);color:#f0f0ff}
+    .pg-cta-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+
+    /* Footer */
+    .hp-footer{border-top:1px solid rgba(255,255,255,0.06);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:rgba(240,240,255,0.3)}
+    .hp-footer-links{display:flex;gap:24px}
+    .hp-footer-links a{color:rgba(240,240,255,0.3);transition:color 0.12s}
+    .hp-footer-links a:hover{color:rgba(240,240,255,0.7)}
+    .hp-footer-logo{height:20px;width:auto;filter:brightness(0) invert(1);opacity:0.35;vertical-align:middle;margin-right:8px}
+
+    @media(max-width:768px){
+      .hp-nav{padding:0 20px}
+      .hp-nav-links{display:none}
+      .hp-nav-links.open{display:flex;flex-direction:column;position:absolute;top:68px;left:0;right:0;background:rgba(7,7,15,0.97);padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);gap:0}
+      .hp-nav-links.open a{display:block;padding:14px 24px}
+      .hp-menu-btn{display:flex}
+      .feat-section{padding:0 20px 64px}
+      .feat-grid{grid-template-columns:1fr}
+      .pg-hero{padding:64px 20px 48px}
+      .pg-cta-wrap{padding:0 20px 64px}
+      .pg-cta{padding:36px 20px}
+      .hp-footer{padding:24px 20px;flex-direction:column;gap:14px;text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="hp-nav">
+  <a href="/"><img src="/images/julion-logo.png" alt="Julion" class="hp-logo" onerror="this.style.display='none'"/></a>
+  <button class="hp-menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <ul class="hp-nav-links" id="navLinks" role="list">
     <li><a href="/how-it-works">How it works</a></li>
-    <li><a href="/features" class="lp-nav-active">Features</a></li>
+    <li><a href="/features" class="active">Features</a></li>
     <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
   </ul>
-  <a class="lp-nav-cta" href="/api/auth/google">Sign in</a>
+  <a class="hp-nav-cta" href="/api/auth/google">Sign in</a>
 </nav>
 
-<main class="lp-page-content">
-  <div class="lp-page-hero">
-    <div class="lp-eyebrow">What you get</div>
-    <h1 class="lp-page-title">Features</h1>
-    <p class="lp-page-lead">Everything you need, nothing you don't.</p>
+<div class="pg-hero">
+  <div class="pg-hero-bg"></div>
+  <div class="pg-hero-inner">
+    <div class="pg-eyebrow">What you get</div>
+    <h1 class="pg-title">Built for <span class="grad">developers</span></h1>
+    <p class="pg-lead">Everything you need to snapshot, store, and restore any project — nothing you don't.</p>
   </div>
+</div>
 
-  <div class="lp-cards">
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">📦</div>
-      <h3 class="lp-card-title">julion seal</h3>
-      <p class="lp-card-desc">Compress your entire project — files, metadata, checksums — into a single portable <code>.on</code> container in seconds. Works with any language or framework.</p>
-      <span class="lp-card-arrow">→ Snapshot in one command</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">☁️</div>
-      <h3 class="lp-card-title">julion deposit</h3>
-      <p class="lp-card-desc">Push your snapshot to Google Drive automatically. Organised under your JULION folder by repository and version. Your data stays in your own Drive.</p>
-      <span class="lp-card-arrow">→ Backed up to Drive</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">🔄</div>
-      <h3 class="lp-card-title">julion unseal</h3>
-      <p class="lp-card-desc">Restore any snapshot to any directory on any machine. Full file tree, exact checksums, zero dependencies beyond the CLI.</p>
-      <span class="lp-card-arrow">→ Restore anywhere</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">🔒</div>
-      <h3 class="lp-card-title">Checksum verification</h3>
-      <p class="lp-card-desc">Every file inside a <code>.on</code> container has a SHA checksum. On unseal, every file is verified — bit-for-bit identical to what was sealed.</p>
-      <span class="lp-card-arrow">→ Guaranteed integrity</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">🌐</div>
-      <h3 class="lp-card-title">Web dashboard</h3>
-      <p class="lp-card-desc">Browse all your repositories and snapshots from the browser. Open any file directly in an editor without downloading the full archive.</p>
-      <span class="lp-card-arrow">→ Works in any browser</span>
-    </article>
-    <article class="lp-card">
-      <div class="lp-card-icon" aria-hidden="true">⚡</div>
-      <h3 class="lp-card-title">CLI-first</h3>
-      <p class="lp-card-desc">Built for developers. The entire Julion workflow runs from your terminal — no GUI required, no cloud agents, no lock-in. Scriptable and CI-friendly.</p>
-      <span class="lp-card-arrow">→ Integrates with your workflow</span>
-    </article>
+<section class="feat-section">
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">📦</div>
+      <h3 class="feat-card-title">julion seal</h3>
+      <p class="feat-card-desc">Compress your entire project — every file, directory, and checksum — into a single portable <code>.on</code> container in seconds. Works with any language or framework.</p>
+      <span class="feat-card-tag">julion seal</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">☁️</div>
+      <h3 class="feat-card-title">julion deposit</h3>
+      <p class="feat-card-desc">Push your snapshot to Google Drive automatically. Organised under your JULION folder by repository and version. Your data stays in your own Drive, not our servers.</p>
+      <span class="feat-card-tag">julion deposit</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">🔄</div>
+      <h3 class="feat-card-title">julion unseal</h3>
+      <p class="feat-card-desc">Restore any snapshot to any directory on any machine. Full file tree, exact checksums, zero dependencies beyond the CLI.</p>
+      <span class="feat-card-tag">julion unseal</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">🔒</div>
+      <h3 class="feat-card-title">Checksum integrity</h3>
+      <p class="feat-card-desc">Every file inside a <code>.on</code> container carries a SHA checksum. On unseal, every file is verified — bit for bit identical to what was sealed. Tampering is caught immediately.</p>
+      <span class="feat-card-tag">Built in</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">🌐</div>
+      <h3 class="feat-card-title">Web dashboard</h3>
+      <p class="feat-card-desc">Browse all your repositories and snapshots from the browser. Open any file directly in an inline Monaco editor without downloading the full archive.</p>
+      <span class="feat-card-tag">dashboard</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">⚡</div>
+      <h3 class="feat-card-title">CLI-first, CI-ready</h3>
+      <p class="feat-card-desc">Fully scriptable. No GUI required, no cloud agents, no lock-in. Drop it into any CI pipeline with a single npm install and a couple of commands.</p>
+      <span class="feat-card-tag">npm i -g julion</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">🔑</div>
+      <h3 class="feat-card-title">Google OAuth</h3>
+      <p class="feat-card-desc">Sign in with your Google account — no passwords to manage. Julion uses your own Drive storage so your snapshots are always under your control.</p>
+      <span class="feat-card-tag">julion connect google</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">📂</div>
+      <h3 class="feat-card-title">Repository organisation</h3>
+      <p class="feat-card-desc">Snapshots are organised by repository name under <code>JULION/&lt;repo&gt;/</code> in your Drive. Browse, fetch, or restore any specific version at any time.</p>
+      <span class="feat-card-tag">julion fetch</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">🚀</div>
+      <h3 class="feat-card-title">Ultra pipeline</h3>
+      <p class="feat-card-desc">Run <code>julion seal --ultra</code> for maximum compression and full metadata collection — ideal for large projects or long-term archiving.</p>
+      <span class="feat-card-tag">--ultra</span>
+    </div>
   </div>
+</section>
 
-  <div class="lp-page-cta">
-    <a class="lp-hero-cta" href="/api/auth/google">Get started free</a>
-    <a class="lp-hero-secondary" href="/how-it-works">How it works</a>
+<div class="pg-cta-wrap">
+  <div class="pg-cta">
+    <h2>Ready to start snapshotting?</h2>
+    <p>Connect your Google account and take your first snapshot in under a minute.</p>
+    <div class="pg-cta-btns">
+      <a class="btn-primary" href="/api/auth/google">Get started free</a>
+      <a class="btn-ghost" href="/how-it-works">Read the docs</a>
+    </div>
   </div>
-</main>
+</div>
 
-<footer class="lp-footer" role="contentinfo">
-  <span>
-    <img src="/images/julion-logo.png" alt="" class="lp-footer-logo" onerror="this.style.display='none'"/>
-    Julion &copy; <script>document.write(new Date().getFullYear())</script>
-  </span>
-  <div class="lp-footer-links">
-    <a href="/how-it-works">How it works</a>
+<footer class="hp-footer">
+  <span><img src="/images/julion-logo.png" alt="" class="hp-footer-logo" onerror="this.style.display='none'"/>Julion &copy; <script>document.write(new Date().getFullYear())</script></span>
+  <div class="hp-footer-links">
+    <a href="/how-it-works">Docs</a>
     <a href="/features">Features</a>
     <a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a>
   </div>
 </footer>
 
 <script>
-  const btn = document.getElementById('menuBtn');
-  const nav = document.getElementById('navLinks');
-  btn.addEventListener('click', () => {
-    const open = nav.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open);
-  });
+  const btn=document.getElementById('menuBtn'),nav=document.getElementById('navLinks');
+  btn.addEventListener('click',()=>nav.classList.toggle('open'));
 </script>
 </body>
 </html>

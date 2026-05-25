@@ -8,80 +8,171 @@
   <meta name="theme-color" content="#6b7bff"/>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
   <link rel="manifest" href="/manifest.json"/>
-  <link rel="stylesheet" href="/styles.css"/>
   <style>
-    .doc-layout { display: grid; grid-template-columns: 220px 1fr; gap: 0; max-width: 1100px; margin: 0 auto; padding: 0 32px 80px; }
-    .doc-sidebar { position: sticky; top: 80px; height: fit-content; padding: 40px 0 0; }
-    .doc-sidebar-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #aaa; margin: 0 0 12px; }
-    .doc-sidebar ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-    .doc-sidebar a { display: block; padding: 7px 12px; border-radius: 8px; font-size: 0.85rem; color: #555; text-decoration: none; transition: background 0.1s, color 0.1s; }
-    .doc-sidebar a:hover { background: rgba(107,123,255,0.08); color: #6b7bff; }
-    .doc-sidebar a.active { background: rgba(107,123,255,0.12); color: #6b7bff; font-weight: 600; }
-    .doc-sidebar .doc-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 10px 0; }
-    .doc-content { padding: 40px 0 0 48px; border-left: 1px solid rgba(0,0,0,0.07); min-width: 0; }
-    .doc-section { margin-bottom: 72px; }
-    .doc-section:target .doc-section-title { color: #6b7bff; }
-    .doc-section-title { font-size: 1.6rem; font-weight: 800; color: #0f0f1a; margin: 0 0 8px; letter-spacing: -0.02em; }
-    .doc-section-sub { color: #666; font-size: 0.95rem; margin: 0 0 28px; line-height: 1.6; }
-    .cmd-block { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
-    .cmd-block + .cmd-block { margin-top: 20px; }
-    .cmd-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-    .cmd-name { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 1.05rem; font-weight: 700; color: #6b7bff; }
-    .cmd-badge { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: rgba(107,123,255,0.1); color: #6b7bff; white-space: nowrap; flex-shrink: 0; }
-    .cmd-desc { color: #444; font-size: 0.9rem; line-height: 1.65; margin: 0 0 16px; }
-    .cmd-usage { background: #1a1a2e; border-radius: 10px; padding: 12px 18px; font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.83rem; color: #a0b0ff; margin-bottom: 16px; overflow-x: auto; white-space: pre; }
-    .cmd-options { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .cmd-options th { text-align: left; padding: 6px 12px 6px 0; color: #999; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.07); }
-    .cmd-options td { padding: 9px 12px 9px 0; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: top; }
-    .cmd-options tr:last-child td { border-bottom: none; }
-    .cmd-options .opt-flag { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.8rem; color: #6b7bff; white-space: nowrap; }
-    .cmd-options .opt-desc { color: #555; }
-    .cmd-options .opt-default { color: #aaa; font-size: 0.78rem; }
-    .cmd-examples { margin-top: 16px; }
-    .cmd-examples-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 8px; }
-    .cmd-ex { background: #f0f0f5; border-radius: 8px; padding: 10px 14px; font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 0.8rem; color: #333; margin-bottom: 6px; overflow-x: auto; white-space: pre; }
-    .cmd-ex:last-child { margin-bottom: 0; }
-    .lp-diagram { max-width: 100%; margin: 0 0 32px; overflow-x: auto; }
-    .lp-diagram-svg { width: 100%; max-width: 800px; height: auto; display: block; }
-    .flow-steps { display: flex; flex-direction: column; gap: 28px; }
-    .flow-step { display: flex; gap: 20px; align-items: flex-start; }
-    .flow-step-num { width: 40px; height: 40px; border-radius: 50%; background: #6b7bff; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
-    .flow-step-body h3 { font-size: 1rem; font-weight: 700; color: #0f0f1a; margin: 0 0 6px; }
-    .flow-step-body p { color: #555; font-size: 0.88rem; line-height: 1.6; margin: 0; }
-    @media (max-width: 768px) {
-      .doc-layout { grid-template-columns: 1fr; padding: 0 20px 60px; }
-      .doc-sidebar { display: none; }
-      .doc-content { padding: 32px 0 0; border-left: none; }
-      .cmd-header { flex-direction: column; gap: 8px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,sans-serif;background:#07070f;color:#f0f0ff;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+    code{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.85em;color:#a0b0ff;background:rgba(107,123,255,0.12);padding:2px 6px;border-radius:4px}
+
+    /* Nav */
+    .hp-nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(7,7,15,0.7);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100}
+    .hp-logo{height:40px;width:auto;filter:brightness(0) invert(1)}
+    .hp-nav-links{display:flex;gap:32px;list-style:none}
+    .hp-nav-links a{font-size:0.875rem;font-weight:500;color:rgba(240,240,255,0.55);transition:color 0.15s}
+    .hp-nav-links a:hover,.hp-nav-links a.active{color:#f0f0ff}
+    .hp-nav-links a.active{color:#a0b0ff}
+    .hp-nav-cta{display:inline-flex;align-items:center;gap:8px;padding:9px 22px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.85rem;font-weight:600;transition:background 0.15s,transform 0.1s}
+    .hp-nav-cta:hover{background:#5567ee;transform:translateY(-1px)}
+    .hp-menu-btn{display:none;flex-direction:column;justify-content:space-between;width:26px;height:18px;background:none;border:none;cursor:pointer;padding:0}
+    .hp-menu-btn span{display:block;width:100%;height:2px;background:rgba(240,240,255,0.6);border-radius:2px}
+
+    /* Page hero */
+    .pg-hero{position:relative;text-align:center;padding:80px 24px 64px;overflow:hidden}
+    .pg-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(107,123,255,0.2) 0%,transparent 70%)}
+    .pg-hero-inner{position:relative;z-index:1}
+    .pg-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(107,123,255,0.12);border:1px solid rgba(107,123,255,0.3);border-radius:999px;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#a0b0ff;margin-bottom:24px}
+    .pg-title{font-size:clamp(2.2rem,4vw+0.5rem,3.5rem);font-weight:900;letter-spacing:-0.03em;line-height:1.05;margin-bottom:18px}
+    .pg-title .grad{background:linear-gradient(135deg,#a0b0ff 0%,#6b7bff 50%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .pg-lead{font-size:1rem;color:rgba(240,240,255,0.55);max-width:500px;margin:0 auto;line-height:1.75}
+
+    /* Doc layout */
+    .doc-outer{max-width:1120px;margin:0 auto;padding:0 32px 100px;display:grid;grid-template-columns:220px 1fr;gap:0}
+    .doc-sidebar{position:sticky;top:88px;height:fit-content;padding:32px 0 0}
+    .doc-sidebar-title{font-size:0.68rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(240,240,255,0.3);margin:0 0 10px}
+    .doc-sidebar ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+    .doc-sidebar a{display:block;padding:7px 12px;border-radius:8px;font-size:0.84rem;color:rgba(240,240,255,0.45);transition:background 0.1s,color 0.1s}
+    .doc-sidebar a:hover{background:rgba(107,123,255,0.1);color:#a0b0ff}
+    .doc-sidebar a.active{background:rgba(107,123,255,0.15);color:#a0b0ff;font-weight:600}
+    .doc-divider{height:1px;background:rgba(255,255,255,0.06);margin:12px 0}
+
+    /* Content */
+    .doc-content{padding:32px 0 0 52px;border-left:1px solid rgba(255,255,255,0.06);min-width:0}
+    .doc-section{margin-bottom:80px}
+    .doc-section-title{font-size:1.65rem;font-weight:800;color:#f0f0ff;margin:0 0 10px;letter-spacing:-0.02em}
+    .doc-section-sub{color:rgba(240,240,255,0.5);font-size:0.93rem;margin:0 0 28px;line-height:1.75}
+
+    /* Command blocks */
+    .cmd-block{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:28px;margin-bottom:20px;transition:border-color 0.2s}
+    .cmd-block:hover{border-color:rgba(107,123,255,0.3)}
+    .cmd-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+    .cmd-name{font-family:'JetBrains Mono','Fira Code',monospace;font-size:1rem;font-weight:700;color:#a0b0ff}
+    .cmd-badge{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:rgba(107,123,255,0.12);color:#6b7bff;white-space:nowrap;flex-shrink:0;border:1px solid rgba(107,123,255,0.2)}
+    .cmd-desc{color:rgba(240,240,255,0.5);font-size:0.88rem;line-height:1.7;margin:0 0 16px}
+    .cmd-usage{background:#0d0d1f;border:1px solid rgba(107,123,255,0.15);border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.82rem;color:#a0b0ff;margin-bottom:16px;overflow-x:auto;white-space:pre}
+    .cmd-options-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px}
+    .cmd-options{width:100%;border-collapse:collapse;font-size:0.84rem;min-width:460px}
+    .cmd-options th{text-align:left;padding:6px 14px 6px 0;color:rgba(240,240,255,0.3);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.07)}
+    .cmd-options td{padding:10px 14px 10px 0;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+    .cmd-options tr:last-child td{border-bottom:none}
+    .opt-flag{font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.78rem;color:#a0b0ff;white-space:nowrap}
+    .opt-desc{color:rgba(240,240,255,0.5)}
+    .opt-default{color:rgba(240,240,255,0.25);font-size:0.77rem;font-family:'JetBrains Mono','Fira Code',monospace}
+    .cmd-examples-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(240,240,255,0.3);margin-bottom:8px}
+    .cmd-ex{background:#0d0d1f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.79rem;color:#c0ccff;margin-bottom:6px;overflow-x:auto;white-space:pre}
+    .cmd-ex:last-child{margin-bottom:0}
+    .cmd-ex .comment{color:rgba(160,176,255,0.4)}
+
+    /* Flow steps */
+    .flow-steps{display:flex;flex-direction:column;gap:24px;margin-bottom:32px}
+    .flow-step{display:flex;gap:20px;align-items:flex-start;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px 22px}
+    .flow-step-num{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6b7bff,#a084fc);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.95rem}
+    .flow-step-body h3{font-size:0.97rem;font-weight:700;color:#f0f0ff;margin:0 0 6px}
+    .flow-step-body p{color:rgba(240,240,255,0.5);font-size:0.87rem;line-height:1.65;margin:0}
+
+    /* Diagram */
+    .lp-diagram{overflow-x:auto;margin-bottom:32px;-webkit-overflow-scrolling:touch}
+    .lp-diagram-svg{display:block}
+
+    /* Install block */
+    .install-note{color:rgba(240,240,255,0.4);font-size:0.87rem;margin:12px 0 0}
+
+    /* Mobile dropdown nav */
+    .mobile-doc-nav-wrap{display:none;max-width:1120px;margin:0 auto;padding:0 32px 20px}
+    .mobile-doc-nav{width:100%;background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 14px;font-size:0.88rem;color:rgba(240,240,255,0.7);appearance:none;cursor:pointer}
+
+    /* CTA */
+    .pg-cta-wrap{padding:0 32px 80px}
+    .pg-cta{max-width:720px;margin:0 auto;background:linear-gradient(135deg,rgba(107,123,255,0.14),rgba(168,85,247,0.09));border:1px solid rgba(107,123,255,0.22);border-radius:24px;padding:56px 40px;text-align:center}
+    .pg-cta h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;margin-bottom:12px}
+    .pg-cta p{color:rgba(240,240,255,0.5);margin-bottom:32px;font-size:0.95rem}
+    .btn-primary{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:#6b7bff;color:#fff;border-radius:999px;font-size:0.95rem;font-weight:700;box-shadow:0 0 32px rgba(107,123,255,0.35);transition:background 0.15s,transform 0.1s,box-shadow 0.15s}
+    .btn-primary:hover{background:#5567ee;transform:translateY(-2px);box-shadow:0 0 48px rgba(107,123,255,0.5)}
+    .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(240,240,255,0.75);border-radius:999px;font-size:0.95rem;font-weight:600;transition:background 0.15s}
+    .btn-ghost:hover{background:rgba(255,255,255,0.1);color:#f0f0ff}
+    .pg-cta-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+
+    /* Footer */
+    .hp-footer{border-top:1px solid rgba(255,255,255,0.06);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:rgba(240,240,255,0.3)}
+    .hp-footer-links{display:flex;gap:24px}
+    .hp-footer-links a{color:rgba(240,240,255,0.3);transition:color 0.12s}
+    .hp-footer-links a:hover{color:rgba(240,240,255,0.7)}
+    .hp-footer-logo{height:20px;width:auto;filter:brightness(0) invert(1);opacity:0.35;vertical-align:middle;margin-right:8px}
+
+    @media(max-width:900px){
+      .doc-outer{grid-template-columns:1fr;padding:0 24px 64px}
+      .doc-sidebar{display:none}
+      .doc-content{padding:0;border-left:none}
+      .mobile-doc-nav-wrap{display:block}
+    }
+    @media(max-width:768px){
+      .hp-nav{padding:0 20px}
+      .hp-nav-links{display:none}
+      .hp-nav-links.open{display:flex;flex-direction:column;position:absolute;top:68px;left:0;right:0;background:rgba(7,7,15,0.97);padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);gap:0}
+      .hp-nav-links.open a{display:block;padding:14px 24px}
+      .hp-menu-btn{display:flex}
+      .pg-hero{padding:56px 20px 48px}
+      .doc-outer{padding:0 16px 60px}
+      .mobile-doc-nav-wrap{padding:0 16px 16px}
+      .cmd-block{padding:18px 16px}
+      .cmd-header{flex-direction:column;gap:8px}
+      .cmd-name{font-size:0.87rem;word-break:break-all}
+      .flow-step{flex-direction:column;gap:12px;padding:16px}
+      .pg-cta-wrap{padding:0 16px 60px}
+      .pg-cta{padding:36px 20px}
+      .hp-footer{padding:24px 20px;flex-direction:column;gap:14px;text-align:center}
     }
   </style>
 </head>
-<body class="lp-body">
+<body>
 
-<nav class="lp-nav" role="navigation" aria-label="Main">
-  <a class="lp-nav-brand" href="/">
-    <img src="/images/julion-logo.png" alt="Julion" class="lp-logo-img" onerror="this.style.display='none'"/>
-  </a>
-  <button class="lp-menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-  <ul class="lp-nav-links" id="navLinks" role="list">
-    <li><a href="/how-it-works" class="lp-nav-active">How it works</a></li>
+<nav class="hp-nav">
+  <a href="/"><img src="/images/julion-logo.png" alt="Julion" class="hp-logo" onerror="this.style.display='none'"/></a>
+  <button class="hp-menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <ul class="hp-nav-links" id="navLinks" role="list">
+    <li><a href="/how-it-works" class="active">How it works</a></li>
     <li><a href="/features">Features</a></li>
     <li><a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a></li>
   </ul>
-  <a class="lp-nav-cta" href="/api/auth/google">Sign in</a>
+  <a class="hp-nav-cta" href="/api/auth/google">Sign in</a>
 </nav>
 
-<div class="lp-page-hero" style="text-align:center;padding:64px 32px 48px;">
-  <div class="lp-eyebrow">Documentation</div>
-  <h1 class="lp-page-title">How Julion works</h1>
-  <p class="lp-page-lead">Full workflow guide &amp; CLI command reference</p>
+<div class="pg-hero">
+  <div class="pg-hero-bg"></div>
+  <div class="pg-hero-inner">
+    <div class="pg-eyebrow">Documentation</div>
+    <h1 class="pg-title">How <span class="grad">Julion</span> works</h1>
+    <p class="pg-lead">Full workflow guide &amp; CLI command reference for every command.</p>
+  </div>
 </div>
 
-<div class="doc-layout">
+<!-- Mobile dropdown nav -->
+<div class="mobile-doc-nav-wrap">
+  <select class="mobile-doc-nav" onchange="location.hash=this.value">
+    <option value="#overview">The workflow</option>
+    <option value="#install">Installation</option>
+    <option value="#cmd-begin">julion begin</option>
+    <option value="#cmd-connect">julion connect</option>
+    <option value="#cmd-seal">julion seal</option>
+    <option value="#cmd-deposit">julion deposit</option>
+    <option value="#cmd-fetch">julion fetch</option>
+    <option value="#cmd-unseal">julion unseal</option>
+    <option value="#workflows">Common workflows</option>
+  </select>
+</div>
 
-  <!-- Sidebar nav -->
+<div class="doc-outer">
+
+  <!-- Sidebar -->
   <aside class="doc-sidebar" aria-label="Documentation navigation">
     <p class="doc-sidebar-title">Overview</p>
     <ul>
@@ -110,33 +201,33 @@
     <!-- Overview -->
     <section class="doc-section" id="overview">
       <h2 class="doc-section-title">The workflow</h2>
-      <p class="doc-section-sub">Julion turns any project into a portable <code>.on</code> container — a gzipped archive with checksums and a binary signature header. Containers live in your own Google Drive under a structured folder hierarchy.</p>
+      <p class="doc-section-sub">Julion turns any project into a portable <code>.on</code> container — a compressed archive with checksums and a binary signature header. Containers live in your own Google Drive under a structured folder hierarchy.</p>
 
       <div class="lp-diagram">
-        <svg class="lp-diagram-svg" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <text x="80" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">YOUR PROJECT</text>
-          <rect x="0" y="40" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="80" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Node.js project</text>
-          <rect x="0" y="96" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="80" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Python app</text>
-          <rect x="0" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="80" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Any codebase</text>
-          <path d="M160 58 C260 58,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <path d="M160 114 C240 114,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <path d="M160 170 C260 170,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <rect x="360" y="88" width="160" height="64" rx="16" fill="#6b7bff"/>
+        <svg class="lp-diagram-svg" viewBox="0 0 880 240" width="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="80" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="rgba(160,176,255,0.4)" letter-spacing="2">YOUR PROJECT</text>
+          <rect x="0" y="40" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="80" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">Node.js project</text>
+          <rect x="0" y="96" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="80" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">Python app</text>
+          <rect x="0" y="152" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="80" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">Any codebase</text>
+          <path d="M160 58 C260 58,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <path d="M160 114 C240 114,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <path d="M160 170 C260 170,280 120,360 120" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <rect x="360" y="88" width="160" height="64" rx="16" fill="#6b7bff" opacity="0.9"/>
           <text x="440" y="117" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="17" font-weight="800" fill="#fff">.on</text>
-          <text x="440" y="137" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.72)" letter-spacing="1">Seals · Stores · Restores</text>
-          <path d="M520 120 C600 120,620 58,720 58" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <path d="M520 120 C600 120,620 114,720 114" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <path d="M520 120 C600 120,620 170,720 170" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.6"/>
-          <text x="800" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="#999" letter-spacing="2">ANYWHERE</text>
-          <rect x="720" y="40" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="800" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Your laptop</text>
-          <rect x="720" y="96" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="800" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">Team server</text>
-          <rect x="720" y="152" width="160" height="36" rx="18" fill="#fff" stroke="#e0e0e8" stroke-width="1.5"/>
-          <text x="800" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#333">CI / cloud VM</text>
+          <text x="440" y="137" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="10" fill="rgba(255,255,255,0.65)" letter-spacing="1">Seals · Stores · Restores</text>
+          <path d="M520 120 C600 120,620 58,720 58" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <path d="M520 120 C600 120,620 114,720 114" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <path d="M520 120 C600 120,620 170,720 170" stroke="#6b7bff" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>
+          <text x="800" y="22" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="rgba(160,176,255,0.4)" letter-spacing="2">ANYWHERE</text>
+          <rect x="720" y="40" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="800" y="63" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">Your laptop</text>
+          <rect x="720" y="96" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="800" y="119" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">Team server</text>
+          <rect x="720" y="152" width="160" height="36" rx="18" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <text x="800" y="175" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" fill="rgba(240,240,255,0.7)">CI / cloud VM</text>
         </svg>
       </div>
 
@@ -177,11 +268,11 @@
       <h2 class="doc-section-title">Installation</h2>
       <p class="doc-section-sub">Install the Julion CLI globally via npm. Node.js 18 or later required.</p>
       <div class="cmd-usage">npm install -g julion</div>
-      <p style="color:#555;font-size:0.9rem;">Verify installation:</p>
-      <div class="cmd-usage">julion --version</div>
+      <p class="install-note">Verify installation:</p>
+      <div class="cmd-usage" style="margin-top:10px">julion --version</div>
     </section>
 
-    <!-- begin -->
+    <!-- julion begin -->
     <section class="doc-section" id="cmd-begin">
       <h2 class="doc-section-title">julion begin</h2>
       <p class="doc-section-sub">Initialize Julion in the current project directory. Creates the necessary config files and registers the project.</p>
@@ -192,52 +283,55 @@
         </div>
         <p class="cmd-desc">Run this once inside a project before using any other Julion commands. It sets up the local Julion configuration for the project.</p>
         <div class="cmd-usage">julion begin</div>
-        <p class="cmd-desc" style="margin:0;">No options or arguments required.</p>
-        <div class="cmd-examples">
+        <p class="cmd-desc" style="margin:0">No options or arguments required.</p>
+        <div class="cmd-examples" style="margin-top:16px">
           <div class="cmd-examples-label">Example</div>
-          <div class="cmd-ex">cd my-project
+          <div class="cmd-ex"><span class="comment"># Navigate into your project and init</span>
+cd my-project
 julion begin</div>
         </div>
       </div>
     </section>
 
-    <!-- connect -->
+    <!-- julion connect -->
     <section class="doc-section" id="cmd-connect">
       <h2 class="doc-section-title">julion connect</h2>
       <p class="doc-section-sub">Authenticate with a cloud provider. Currently supports Google Drive. Your credentials are stored locally and never sent to Julion servers.</p>
       <div class="cmd-block">
         <div class="cmd-header">
-          <span class="cmd-name">julion connect &lt;provider&gt;</span>
+          <span class="cmd-name">julion connect &lt;provider&gt; [options]</span>
           <span class="cmd-badge">Auth</span>
         </div>
         <p class="cmd-desc">Opens a browser-based OAuth flow to authenticate with the specified provider. After authentication, Julion stores your access token locally so you can use Drive commands.</p>
         <div class="cmd-usage">julion connect &lt;provider&gt; [options]</div>
-        <table class="cmd-options">
-          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="opt-flag">&lt;provider&gt;</td>
-              <td class="opt-desc">Cloud provider to authenticate with. Currently supports: <code>google</code></td>
-              <td class="opt-default">required</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">--website</td>
-              <td class="opt-desc">Authenticate via the Julion website login flow instead of the CLI-native flow. Opens <code>julion.julio.co.tz</code> and polls for completion.</td>
-              <td class="opt-default">false</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="cmd-options-wrap">
+          <table class="cmd-options">
+            <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="opt-flag">&lt;provider&gt;</td>
+                <td class="opt-desc">Cloud provider to authenticate with. Currently supports: <code>google</code></td>
+                <td class="opt-default">required</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">--website</td>
+                <td class="opt-desc">Authenticate via the Julion website login flow instead of the CLI-native flow. Opens <code>julion.julio.co.tz</code> and polls for completion.</td>
+                <td class="opt-default">false</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="cmd-examples">
           <div class="cmd-examples-label">Examples</div>
-          <div class="cmd-ex"># Standard CLI auth (opens browser inline)
+          <div class="cmd-ex"><span class="comment"># Standard CLI auth (opens browser inline)</span>
 julion connect google</div>
-          <div class="cmd-ex"># Website-based auth flow
+          <div class="cmd-ex"><span class="comment"># Website-based auth flow</span>
 julion connect google --website</div>
         </div>
       </div>
     </section>
 
-    <!-- seal -->
+    <!-- julion seal -->
     <section class="doc-section" id="cmd-seal">
       <h2 class="doc-section-title">julion seal</h2>
       <p class="doc-section-sub">Create a <code>.on</code> snapshot of the current project. Walks the file tree, computes checksums, and compresses everything into a single portable container.</p>
@@ -246,48 +340,50 @@ julion connect google --website</div>
           <span class="cmd-name">julion seal [options]</span>
           <span class="cmd-badge">Core</span>
         </div>
-        <p class="cmd-desc">Seals the current working directory into a <code>.on</code> archive. The archive contains the full file tree, file metadata, and per-file checksums. Can optionally upload to Drive immediately after sealing.</p>
+        <p class="cmd-desc">Seals the current working directory into a <code>.on</code> archive containing the full file tree, metadata, and per-file checksums. Can optionally upload to Drive immediately after sealing.</p>
         <div class="cmd-usage">julion seal [options]</div>
-        <table class="cmd-options">
-          <thead><tr><th>Option</th><th>Description</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="opt-flag">--ultra</td>
-              <td class="opt-desc">Run the full ultra pipeline — maximum compression and metadata collection.</td>
-              <td class="opt-default">false</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">-o, --out &lt;path&gt;</td>
-              <td class="opt-desc">Output path for the generated <code>.on</code> file.</td>
-              <td class="opt-default">&lt;projectName&gt;.on</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">--deposit</td>
-              <td class="opt-desc">Upload the snapshot to Google Drive immediately after sealing. Requires <code>--repository</code>.</td>
-              <td class="opt-default">false</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">--repository &lt;name&gt;</td>
-              <td class="opt-desc">Drive repository folder name (used with <code>--deposit</code>). The snapshot is stored under <code>JULION/&lt;name&gt;/</code> in your Drive.</td>
-              <td class="opt-default">—</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="cmd-options-wrap">
+          <table class="cmd-options">
+            <thead><tr><th>Option</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="opt-flag">--ultra</td>
+                <td class="opt-desc">Run the full ultra pipeline — maximum compression and metadata collection.</td>
+                <td class="opt-default">false</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">-o, --out &lt;path&gt;</td>
+                <td class="opt-desc">Output path for the generated <code>.on</code> file.</td>
+                <td class="opt-default">&lt;projectName&gt;.on</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">--deposit</td>
+                <td class="opt-desc">Upload the snapshot to Google Drive immediately after sealing. Requires <code>--repository</code>.</td>
+                <td class="opt-default">false</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">--repository &lt;name&gt;</td>
+                <td class="opt-desc">Drive repository folder name (used with <code>--deposit</code>). Snapshot stored under <code>JULION/&lt;name&gt;/</code> in your Drive.</td>
+                <td class="opt-default">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="cmd-examples">
           <div class="cmd-examples-label">Examples</div>
-          <div class="cmd-ex"># Basic seal to current directory
+          <div class="cmd-ex"><span class="comment"># Basic seal to current directory</span>
 julion seal</div>
-          <div class="cmd-ex"># Seal with custom output path
+          <div class="cmd-ex"><span class="comment"># Seal with custom output path</span>
 julion seal -o ./snapshots/v1.on</div>
-          <div class="cmd-ex"># Seal and immediately upload to Drive
+          <div class="cmd-ex"><span class="comment"># Seal and immediately upload to Drive</span>
 julion seal --deposit --repository my-app</div>
-          <div class="cmd-ex"># Full ultra pipeline + upload
+          <div class="cmd-ex"><span class="comment"># Full ultra pipeline + upload</span>
 julion seal --ultra --deposit --repository my-app</div>
         </div>
       </div>
     </section>
 
-    <!-- deposit -->
+    <!-- julion deposit -->
     <section class="doc-section" id="cmd-deposit">
       <h2 class="doc-section-title">julion deposit</h2>
       <p class="doc-section-sub">Upload an existing <code>.on</code> snapshot to Google Drive. The file is stored under <code>JULION/&lt;repository&gt;/</code> in your Drive.</p>
@@ -298,32 +394,34 @@ julion seal --ultra --deposit --repository my-app</div>
         </div>
         <p class="cmd-desc">Pushes a local <code>.on</code> file to your Google Drive. Requires prior authentication via <code>julion connect google</code>. Organises snapshots by repository name.</p>
         <div class="cmd-usage">julion deposit &lt;snapshot&gt; [repository]</div>
-        <table class="cmd-options">
-          <thead><tr><th>Argument</th><th>Description</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="opt-flag">&lt;snapshot&gt;</td>
-              <td class="opt-desc">Path to the local <code>.on</code> snapshot file to upload.</td>
-              <td class="opt-default">required</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">[repository]</td>
-              <td class="opt-desc">Drive folder name to store the snapshot under. Creates the folder if it doesn't exist.</td>
-              <td class="opt-default">optional</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="cmd-options-wrap">
+          <table class="cmd-options">
+            <thead><tr><th>Argument</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="opt-flag">&lt;snapshot&gt;</td>
+                <td class="opt-desc">Path to the local <code>.on</code> snapshot file to upload.</td>
+                <td class="opt-default">required</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">[repository]</td>
+                <td class="opt-desc">Drive folder name to store the snapshot under. Creates the folder if it doesn't exist.</td>
+                <td class="opt-default">optional</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="cmd-examples">
           <div class="cmd-examples-label">Examples</div>
-          <div class="cmd-ex"># Upload snapshot to a named repository
+          <div class="cmd-ex"><span class="comment"># Upload snapshot to a named repository</span>
 julion deposit my-app-v1.on my-app</div>
-          <div class="cmd-ex"># Upload without a repository name
+          <div class="cmd-ex"><span class="comment"># Upload without a repository name</span>
 julion deposit my-app-v1.on</div>
         </div>
       </div>
     </section>
 
-    <!-- fetch -->
+    <!-- julion fetch -->
     <section class="doc-section" id="cmd-fetch">
       <h2 class="doc-section-title">julion fetch</h2>
       <p class="doc-section-sub">Download a <code>.on</code> snapshot from Google Drive to your local machine.</p>
@@ -334,37 +432,39 @@ julion deposit my-app-v1.on</div>
         </div>
         <p class="cmd-desc">Pulls a specific snapshot file from your Google Drive repository. Use <code>julion unseal</code> afterwards to restore it.</p>
         <div class="cmd-usage">julion fetch &lt;repository&gt; &lt;snapshot&gt; [options]</div>
-        <table class="cmd-options">
-          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="opt-flag">&lt;repository&gt;</td>
-              <td class="opt-desc">Name of the Drive repository folder that contains the snapshot.</td>
-              <td class="opt-default">required</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">&lt;snapshot&gt;</td>
-              <td class="opt-desc">Filename of the <code>.on</code> snapshot to download from Drive.</td>
-              <td class="opt-default">required</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">-o, --out &lt;path&gt;</td>
-              <td class="opt-desc">Local destination path for the downloaded file.</td>
-              <td class="opt-default">snapshot filename in cwd</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="cmd-options-wrap">
+          <table class="cmd-options">
+            <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="opt-flag">&lt;repository&gt;</td>
+                <td class="opt-desc">Name of the Drive repository folder that contains the snapshot.</td>
+                <td class="opt-default">required</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">&lt;snapshot&gt;</td>
+                <td class="opt-desc">Filename of the <code>.on</code> snapshot to download from Drive.</td>
+                <td class="opt-default">required</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">-o, --out &lt;path&gt;</td>
+                <td class="opt-desc">Local destination path for the downloaded file.</td>
+                <td class="opt-default">snapshot filename in cwd</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="cmd-examples">
           <div class="cmd-examples-label">Examples</div>
-          <div class="cmd-ex"># Download to current directory
+          <div class="cmd-ex"><span class="comment"># Download to current directory</span>
 julion fetch my-app my-app-v1.on</div>
-          <div class="cmd-ex"># Download to a specific path
+          <div class="cmd-ex"><span class="comment"># Download to a specific path</span>
 julion fetch my-app my-app-v1.on -o ./downloads/v1.on</div>
         </div>
       </div>
     </section>
 
-    <!-- unseal -->
+    <!-- julion unseal -->
     <section class="doc-section" id="cmd-unseal">
       <h2 class="doc-section-title">julion unseal</h2>
       <p class="doc-section-sub">Restore a <code>.on</code> snapshot into a target directory. Verifies checksums on every file during extraction.</p>
@@ -375,33 +475,35 @@ julion fetch my-app my-app-v1.on -o ./downloads/v1.on</div>
         </div>
         <p class="cmd-desc">Extracts the full file tree from a <code>.on</code> container into a target directory. Each restored file is verified against its stored checksum — if any file is corrupted or tampered with, the restore is aborted.</p>
         <div class="cmd-usage">julion unseal &lt;snapshot&gt; [target] [options]</div>
-        <table class="cmd-options">
-          <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="opt-flag">&lt;snapshot&gt;</td>
-              <td class="opt-desc">Path to the <code>.on</code> snapshot file to restore.</td>
-              <td class="opt-default">required</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">[target]</td>
-              <td class="opt-desc">Directory to restore the project into. Created if it doesn't exist.</td>
-              <td class="opt-default">current directory</td>
-            </tr>
-            <tr>
-              <td class="opt-flag">--force</td>
-              <td class="opt-desc">Overwrite existing files in the target directory without prompting.</td>
-              <td class="opt-default">false</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="cmd-options-wrap">
+          <table class="cmd-options">
+            <thead><tr><th>Argument / Option</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="opt-flag">&lt;snapshot&gt;</td>
+                <td class="opt-desc">Path to the <code>.on</code> snapshot file to restore.</td>
+                <td class="opt-default">required</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">[target]</td>
+                <td class="opt-desc">Directory to restore the project into. Created if it doesn't exist.</td>
+                <td class="opt-default">current directory</td>
+              </tr>
+              <tr>
+                <td class="opt-flag">--force</td>
+                <td class="opt-desc">Overwrite existing files in the target directory without prompting.</td>
+                <td class="opt-default">false</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="cmd-examples">
           <div class="cmd-examples-label">Examples</div>
-          <div class="cmd-ex"># Restore into current directory
+          <div class="cmd-ex"><span class="comment"># Restore into current directory</span>
 julion unseal my-app-v1.on</div>
-          <div class="cmd-ex"># Restore into a specific directory
+          <div class="cmd-ex"><span class="comment"># Restore into a specific directory</span>
 julion unseal my-app-v1.on ./restored-project</div>
-          <div class="cmd-ex"># Force overwrite existing files
+          <div class="cmd-ex"><span class="comment"># Force overwrite existing files</span>
 julion unseal my-app-v1.on ./restored-project --force</div>
         </div>
       </div>
@@ -451,47 +553,46 @@ julion seal --deposit --repository ci-builds -o build-$CI_COMMIT_SHA.on</div>
       </div>
     </section>
 
-    <div class="lp-page-cta">
-      <a class="lp-hero-cta" href="/api/auth/google">Get started free</a>
-      <a class="lp-hero-secondary" href="/features">See all features</a>
-    </div>
-
   </div><!-- /doc-content -->
-</div><!-- /doc-layout -->
+</div><!-- /doc-outer -->
 
-<footer class="lp-footer" role="contentinfo">
-  <span>
-    <img src="/images/julion-logo.png" alt="" class="lp-footer-logo" onerror="this.style.display='none'"/>
-    Julion &copy; <script>document.write(new Date().getFullYear())</script>
-  </span>
-  <div class="lp-footer-links">
-    <a href="/how-it-works">How it works</a>
+<div class="pg-cta-wrap">
+  <div class="pg-cta">
+    <h2>Ready to start snapshotting?</h2>
+    <p>Connect your Google account and take your first snapshot in under a minute.</p>
+    <div class="pg-cta-btns">
+      <a class="btn-primary" href="/api/auth/google">Get started free</a>
+      <a class="btn-ghost" href="/features">See all features</a>
+    </div>
+  </div>
+</div>
+
+<footer class="hp-footer">
+  <span><img src="/images/julion-logo.png" alt="" class="hp-footer-logo" onerror="this.style.display='none'"/>Julion &copy; <script>document.write(new Date().getFullYear())</script></span>
+  <div class="hp-footer-links">
+    <a href="/how-it-works">Docs</a>
     <a href="/features">Features</a>
     <a href="https://github.com/JulioOxalis/julion" rel="noopener noreferrer">GitHub</a>
   </div>
 </footer>
 
 <script>
-  const btn = document.getElementById('menuBtn');
-  const nav = document.getElementById('navLinks');
-  btn.addEventListener('click', () => {
-    const open = nav.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open);
-  });
+  const btn=document.getElementById('menuBtn'),nav=document.getElementById('navLinks');
+  btn.addEventListener('click',()=>nav.classList.toggle('open'));
 
   // Highlight active sidebar link on scroll
-  const sections = document.querySelectorAll('.doc-section');
-  const links = document.querySelectorAll('.doc-sidebar a');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        links.forEach(l => l.classList.remove('active'));
-        const active = document.querySelector(`.doc-sidebar a[href="#${e.target.id}"]`);
-        if (active) active.classList.add('active');
+  const sections=document.querySelectorAll('.doc-section');
+  const links=document.querySelectorAll('.doc-sidebar a');
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove('active'));
+        const a=document.querySelector(`.doc-sidebar a[href="#${e.target.id}"]`);
+        if(a)a.classList.add('active');
       }
     });
-  }, { rootMargin: '-20% 0px -70% 0px' });
-  sections.forEach(s => observer.observe(s));
+  },{rootMargin:'-20% 0px -70% 0px'});
+  sections.forEach(s=>obs.observe(s));
 </script>
 </body>
 </html>

@@ -78,6 +78,6 @@ export default async function handler(req, res) {
     return res.redirect("/dashboard");
   } catch (err) {
     console.error("[auth/callback]", err);
-    return res.status(500).json({ success: false, data: null, error: "Authentication failed" });
+    return res.status(500).json({ success: false, data: null, error: err.message || "Authentication failed", stack: err.stack?.split("\n").slice(0,3) });
   }
 }

@@ -3,7 +3,7 @@
   "framework": null,
   "outputDirectory": "public",
   "buildCommand": "",
-  "rewrites": [
+"rewrites": [
     { "source": "/auth/callback",   "destination": "/api/auth/callback" },
     { "source": "/how-it-works",    "destination": "/pages/how-it-works.html" },
     { "source": "/features",        "destination": "/pages/features.html" },
