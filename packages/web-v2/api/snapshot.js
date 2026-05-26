@@ -33,7 +33,8 @@ export default async function handler(req, res) {
       });
     } catch (err) {
       if (err.message === "no_token") return res.status(403).json({ success: false, data: null, error: "Google Drive not connected" });
-      return res.status(500).json({ success: false, data: null, error: "Failed to read snapshot" });
+      console.error("[snapshot:tree]", err);
+      return res.status(500).json({ success: false, data: null, error: err.message || "Failed to read snapshot" });
     } finally {
       if (tmp) await fsPromises.unlink(tmp).catch(() => {});
     }
@@ -105,6 +106,31 @@ export default async function handler(req, res) {
     } catch (err) {
       if (err.message === "no_token") return res.status(403).json({ success: false, data: null, error: "Google Drive not connected" });
       return res.status(500).json({ success: false, data: null, error: err.message });
+    } finally {
+      if (tmp) await fsPromises.unlink(tmp).catch(() => {});
+    }
+  }
+
+  // ── download ──────────────────────────────────────────────────────────────────
+  if (action === "download") {
+    if (!snapshot) return res.status(400).json({ success: false, data: null, error: "Missing snapshot" });
+    let tmp = null;
+    try {
+      const drive = await getDriveForJWT(user);
+      const snaps = await listSnapshots(drive, repo);
+      const snap  = snaps.find(s => s.name === snapshot);
+      if (!snap) return res.status(404).json({ success: false, data: null, error: "Snapshot not found" });
+      tmp = await downloadDriveFile(drive, snap.id);
+      const buf = await fsPromises.readFile(tmp);
+      res.setHeader("Content-Disposition", `attachment; filename="${snapshot}"`);
+      res.setHeader("Content-Type", "application/octet-stream");
+      res.setHeader("Content-Length", buf.length);
+      return res.end(buf);
+    } catch (err) {
+      if (!res.headersSent) {
+        if (err.message === "no_token") return res.status(403).json({ success: false, data: null, error: "Google Drive not connected" });
+        return res.status(500).json({ success: false, data: null, error: err.message });
+      }
     } finally {
       if (tmp) await fsPromises.unlink(tmp).catch(() => {});
     }

@@ -22,6 +22,7 @@ async function walkFiles(root: string, dir = '.', fileList: string[] = [], dirLi
   const directory = path.join(root, dir);
   const entries = await fs.readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
+    if (entry.name.endsWith('.on')) continue;
     const relative = path.posix.join(dir, entry.name);
     if (entry.isDirectory()) {
       dirList.push(relative);

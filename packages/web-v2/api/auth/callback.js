@@ -37,42 +37,7 @@ export default async function handler(req, res) {
       picture: gUser.picture || null,
     };
 
-    const db = (await clientPromise).db(process.env.DB_NAME);
-
-    // Upsert user
-    await db.collection("members").updateOne(
-      { email: user.email },
-      {
-        $set:         { name: user.name, picture: user.picture, lastLoginAt: new Date() },
-        $setOnInsert: { createdAt: new Date() },
-      },
-      { upsert: true }
-    );
-
-    // Save Drive tokens
-    await db.collection("user_tokens").updateOne(
-      { userEmail: user.email },
-      { $set: { tokenJson: JSON.stringify(tokens), updatedAt: new Date() } },
-      { upsert: true }
-    );
-
-    // Complete a pending CLI session if one was attached to this OAuth flow
-    if (statePayload.cliSession) {
-      await db.collection("auth_sessions").updateOne(
-        { sessionId: statePayload.cliSession, status: "pending" },
-        {
-          $set: {
-            status:      "complete",
-            tokenJson:   JSON.stringify(tokens),
-            userEmail:   user.email,
-            userName:    user.name,
-            userPicture: user.picture,
-          },
-        }
-      );
-    }
-
-    // Issue JWT cookie — embed Drive tokens so Drive ops never need MongoDB
+    // Issue JWT immediately — embed Drive tokens so Drive ops never need MongoDB
     const jwtToken = signToken({
       email:      user.email,
       name:       user.name,
@@ -80,7 +45,55 @@ export default async function handler(req, res) {
       driveToken: JSON.stringify(tokens),
     });
     setAuthCookie(res, jwtToken);
-    return res.redirect("/dashboard");
+
+    // CLI session: MUST be written before redirect — Vercel kills the function on res.redirect()
+    if (statePayload.cliSession) {
+      try {
+        const db = (await clientPromise).db(process.env.DB_NAME);
+        await db.collection("auth_sessions").updateOne(
+          { sessionId: statePayload.cliSession },
+          {
+            $set: {
+              status:      "complete",
+              tokenJson:   JSON.stringify(tokens),
+              userEmail:   user.email,
+              userName:    user.name,
+              userPicture: user.picture,
+            },
+            $setOnInsert: {
+              sessionId: statePayload.cliSession,
+              createdAt: new Date(),
+              expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            },
+          },
+          { upsert: true }
+        );
+      } catch (err) {
+        console.error("[auth/callback] cli session write failed:", err);
+      }
+    }
+
+    // Non-critical MongoDB ops — best-effort, background
+    (async () => {
+      try {
+        const db = (await clientPromise).db(process.env.DB_NAME);
+        await db.collection("members").updateOne(
+          { email: user.email },
+          {
+            $set:         { name: user.name, picture: user.picture, lastLoginAt: new Date() },
+            $setOnInsert: { createdAt: new Date() },
+          },
+          { upsert: true }
+        );
+        await db.collection("user_tokens").updateOne(
+          { userEmail: user.email },
+          { $set: { tokenJson: JSON.stringify(tokens), updatedAt: new Date() } },
+          { upsert: true }
+        );
+      } catch { /* non-fatal */ }
+    })();
+
+    return res.redirect(statePayload.cliSession ? "/auth-complete" : "/dashboard");
   } catch (err) {
     console.error("[auth/callback]", err);
     return res.status(500).json({ success: false, data: null, error: err.message || "Authentication failed", stack: err.stack?.split("\n").slice(0,3) });

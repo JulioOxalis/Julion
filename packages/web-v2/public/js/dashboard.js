@@ -6,6 +6,8 @@ function toggleTerminal() {
   if (!panel) return;
   const open = panel.classList.toggle("open");
   panel.setAttribute("aria-hidden", String(!open));
+  const btn = document.querySelector("[data-action=toggle-terminal]");
+  if (btn) { btn.classList.toggle("sidebar-terminal-btn--active", open); btn.blur(); }
   if (open) document.getElementById("terminal-input")?.focus();
 }
 

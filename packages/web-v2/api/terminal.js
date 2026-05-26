@@ -45,6 +45,7 @@ function treeText(files) {
 const HELP = `Julion Web Terminal — commands run against your Google Drive
 
   help                            Show this help
+  whoami                          Show current user info
   ls                              List all repositories
   ls <repo>                       List snapshots in a repository
   inspect <repo> <snapshot>       Show file tree of a snapshot
@@ -65,6 +66,15 @@ export default async function handler(req, res) {
 
   if (command === "help")  return res.status(200).json({ success: true, data: { output: HELP, type: "info" }, error: null });
   if (command === "clear") return res.status(200).json({ success: true, data: { output: "__CLEAR__" }, error: null });
+
+  if (command === "whoami") {
+    const lines = [
+      `Name:  ${user.name || "—"}`,
+      `Email: ${user.email || "—"}`,
+      `Drive: ${user.driveToken ? "Connected" : "Not connected"}`,
+    ];
+    return res.status(200).json({ success: true, data: { output: lines.join("\n"), type: "info" }, error: null });
+  }
 
   let tmp1 = null, tmp2 = null;
   try {

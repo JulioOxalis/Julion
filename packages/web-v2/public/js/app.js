@@ -47,9 +47,11 @@ export function renderSidebar(user, active) {
     <nav class="sidebar" aria-label="Main navigation">
       <div class="sidebar-logo">JULION</div>
       <div class="nav-links" role="list">
-        <a href="/dashboard"    class="nav-link${active === "dashboard"    ? " nav-link-active" : ""}" aria-current="${active === "dashboard"    ? "page" : "false"}">Overview</a>
-        <a href="/repositories" class="nav-link${active === "repositories" ? " nav-link-active" : ""}" aria-current="${active === "repositories" ? "page" : "false"}">Repositories</a>
-        <button class="sidebar-terminal-btn" data-action="toggle-terminal" title="Toggle terminal (Ctrl+\`)">⌘ Terminal</button>
+        <a href="/dashboard"    class="nav-link${active === "dashboard"    ? " nav-link-active" : ""}" aria-current="${active === "dashboard"    ? "page" : "false"}">&#9707; Overview</a>
+        <a href="/repositories" class="nav-link${active === "repositories" ? " nav-link-active" : ""}" aria-current="${active === "repositories" ? "page" : "false"}">&#128193; Repositories</a>
+        <a href="/settings"     class="nav-link${active === "settings"     ? " nav-link-active" : ""}" aria-current="${active === "settings"     ? "page" : "false"}">&#9881; Settings</a>
+        <div class="sidebar-divider"></div>
+        <button class="sidebar-terminal-btn" data-action="toggle-terminal" title="Toggle terminal (Ctrl+\`)">&#8984; Terminal</button>
       </div>
       <div class="sidebar-footer">
         <div class="sidebar-user">

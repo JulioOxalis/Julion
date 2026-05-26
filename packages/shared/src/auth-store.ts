@@ -16,12 +16,19 @@ export interface JulionUser {
   picture?: string;
 }
 
+export interface AuthSessionGoogleConfig {
+  client_id: string | null;
+  client_secret: string | null;
+  redirect_uri: string | null;
+}
+
 export interface AuthSessionResult {
   sessionId: string;
   token: Record<string, unknown>;
   user_email: string;
   user_name: string;
   user_picture?: string;
+  google_config?: AuthSessionGoogleConfig;
 }
 
 interface SessionRow extends RowDataPacket {
@@ -38,17 +45,17 @@ const SESSION_TTL_MINUTES = 15;
 
 export async function loadDatabaseConfig(startDir?: string): Promise<DatabaseConfig | null> {
   const env = await loadMergedEnv(startDir);
-  const host = env.DB_HOST || env.MYSQL_HOST || '127.0.0.1';
-  const user = env.DB_USER || env.MYSQL_USER || 'root';
+  const host = env.DB_HOST || env.MYSQL_HOST;
+  const user = env.DB_USER || env.MYSQL_USER;
   const password = env.DB_PASSWORD ?? env.MYSQL_PASSWORD ?? '';
-  const database = env.DB_DATABASE || env.MYSQL_DATABASE || 'julion';
+  const database = env.DB_DATABASE || env.MYSQL_DATABASE;
   const port = env.DB_PORT ? Number(env.DB_PORT) : 3306;
 
-  if (!user) {
+  if (!user || !database) {
     return null;
   }
 
-  return { host, port, user, password, database };
+  return { host: host || '127.0.0.1', port, user, password, database };
 }
 
 export async function getDbConnection(startDir?: string): Promise<Connection> {
@@ -322,14 +329,23 @@ async function waitForAuthSessionHttp(
       await sleep(2000);
       continue;
     }
-    if (response.ok) {
-      const payload = (await response.json()) as AuthSessionResult;
-      if (payload?.token && payload?.user_email) {
-        return payload;
-      }
-    }
     if (response.status === 410 || response.status === 404) {
-      throw new Error('Login session expired or not found. Run `julion auth google --website` again.');
+      throw new Error('Login session expired or not found. Run `julion connect google --website` again.');
+    }
+    if (response.ok) {
+      const json = (await response.json()) as any;
+      // Unwrap {success, data} envelope if present
+      const payload = json?.data ?? json;
+      if (payload?.token && payload?.user_email) {
+        return {
+          sessionId:    payload.sessionId || sessionId,
+          token:        payload.token,
+          user_email:   payload.user_email,
+          user_name:    payload.user_name  || payload.user_email,
+          user_picture: payload.user_picture || undefined,
+          google_config: payload.google_config || undefined,
+        };
+      }
     }
     await sleep(2000);
   }

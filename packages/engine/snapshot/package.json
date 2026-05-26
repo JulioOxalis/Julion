@@ -1,9 +1,12 @@
 {
   "name": "julion-engine-snapshot",
-  "version": "0.1.0",
+  "version": "0.1.6",
   "description": "Snapshot engine package for Julion project analysis and packaging.",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

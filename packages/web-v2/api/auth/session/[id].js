@@ -43,11 +43,16 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         data: {
-          sessionId:   id,
-          token:       JSON.parse(session.tokenJson),
-          user_email:  session.userEmail,
-          user_name:   session.userName || session.userEmail,
+          sessionId:    id,
+          token:        JSON.parse(session.tokenJson),
+          user_email:   session.userEmail,
+          user_name:    session.userName || session.userEmail,
           user_picture: session.userPicture || null,
+          google_config: {
+            client_id:     process.env.GOOGLE_CLIENT_ID     || null,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET || null,
+            redirect_uri:  process.env.GOOGLE_REDIRECT_URI  || null,
+          },
         },
         error: null,
       });

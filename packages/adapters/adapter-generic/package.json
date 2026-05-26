@@ -1,9 +1,12 @@
 {
   "name": "julion-adapter-generic",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Generic adapter package for Julion plug-in storage and cloud adapters.",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

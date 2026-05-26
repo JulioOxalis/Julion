@@ -6,7 +6,7 @@ async function init() {
 
   document.getElementById("sidebar").innerHTML = renderSidebar(user, "repositories");
 
-  const tbody = document.getElementById("repo-tbody");
+  const grid = document.getElementById("repo-grid");
 
   try {
     const res  = await fetch("/api/repositories");
@@ -22,18 +22,33 @@ async function init() {
 
     const repos = json.data;
     if (!repos.length) {
-      tbody.innerHTML = `<tr><td colspan="2" class="empty-cell">No repositories found. Run <code>julion seal --deposit --repository my-repo</code> to create one.</td></tr>`;
+      grid.innerHTML = `<div class="empty-cell" style="grid-column:1/-1;padding:32px 0;text-align:center;color:rgba(241,245,249,0.35)">No repositories found. Run <code>julion seal --deposit --repository my-repo</code> to create one.</div>`;
       return;
     }
 
-    tbody.innerHTML = repos
+    grid.innerHTML = repos
       .map(
-        (r) => `<tr>
-          <td><a class="table-link" href="/repository?repo=${encodeURIComponent(r.name)}">${esc(r.name)}</a></td>
-          <td>${formatDate(r.modifiedTime)}</td>
-        </tr>`
+        (r) => `<a class="repo-card" href="/repository?repo=${encodeURIComponent(r.name)}">
+          <div class="repo-card-icon">&#128230;</div>
+          <div class="repo-card-name">${esc(r.name)}</div>
+          <div class="repo-card-meta">
+            <span>&#128197; ${formatDate(r.modifiedTime)}</span>
+          </div>
+        </a>`
       )
       .join("");
+
+    // Wire search filter
+    const searchInput = document.getElementById("repo-search");
+    if (searchInput) {
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.toLowerCase().trim();
+        grid.querySelectorAll(".repo-card").forEach(card => {
+          const name = (card.querySelector(".repo-card-name")?.textContent || "").toLowerCase();
+          card.style.display = !q || name.includes(q) ? "" : "none";
+        });
+      });
+    }
   } catch (err) {
     showError(document.getElementById("repo-table-wrap"), "Failed to load repositories.");
   }

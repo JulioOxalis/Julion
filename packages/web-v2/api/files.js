@@ -1,19 +1,60 @@
 import crypto from "crypto";
+import { brotliDecompress } from "zlib";
+import { promisify } from "util";
 import { promises as fsPromises } from "fs";
 import { requireAuth } from "../lib/auth.js";
 import { getDriveForJWT, listSnapshots } from "../lib/drive.js";
 import { downloadDriveFile, readOnArchive, uploadDriveFile } from "../lib/archive.js";
 
+const brotliDecompressAsync = promisify(brotliDecompress);
+
+async function extractFromChunks(arc, filePath) {
+  const tree = Array.isArray(arc.tree) ? arc.tree : null;
+  if (!tree) return null;
+
+  const entry = tree.find(e => e.relativePath === filePath);
+  if (!entry || entry.excluded || !entry.chunkIds?.length) return null;
+
+  const chunkMeta = arc["index.map"]?.chunks;
+  if (!chunkMeta?.length) return null;
+
+  const chunksBin = arc["chunks.bin"];
+  if (!chunksBin) return null;
+
+  const bin = Buffer.isBuffer(chunksBin) ? chunksBin : Buffer.from(chunksBin, "binary");
+
+  // Build offset map from chunk metadata
+  let offset = 0;
+  const offsetMap = {};
+  for (const chunk of chunkMeta) {
+    offsetMap[chunk.chunkId] = { offset, size: chunk.compressedSize, compression: chunk.compression };
+    offset += chunk.compressedSize;
+  }
+
+  const parts = [];
+  for (const chunkId of entry.chunkIds) {
+    const meta = offsetMap[chunkId];
+    if (!meta) return null;
+    const chunkData = bin.slice(meta.offset, meta.offset + meta.size);
+    const decompressed = meta.compression === "brotli"
+      ? await brotliDecompressAsync(chunkData)
+      : chunkData;
+    parts.push(decompressed);
+  }
+
+  return Buffer.concat(parts);
+}
+
+const IMAGE_EXTS  = new Set(["png","jpg","jpeg","gif","ico","webp","bmp","svg"]);
 const BINARY_EXTS = new Set([
-  "png","jpg","jpeg","gif","ico","webp","bmp","svg",
   "pdf","zip","tar","gz","7z","rar",
   "exe","dll","so","dylib","class","jar","wasm",
   "mp3","mp4","wav","ogg","ttf","woff","woff2",
 ]);
 
-function isBinary(filename) {
-  return BINARY_EXTS.has((filename.split(".").pop() || "").toLowerCase());
-}
+function getExt(filename) { return (filename.split(".").pop() || "").toLowerCase(); }
+function isImage(filename)  { return IMAGE_EXTS.has(getExt(filename)); }
+function isBinary(filename) { return BINARY_EXTS.has(getExt(filename)); }
 
 export default async function handler(req, res) {
   const user = requireAuth(req, res);
@@ -35,15 +76,39 @@ export default async function handler(req, res) {
       const arc = await readOnArchive(tmp);
 
       if (!arc.index?.files?.includes(file)) return res.status(404).json({ success: false, data: null, error: "File not in snapshot" });
+
+      // Check if file is marked excluded in tree (e.g. .env — excluded for security)
+      if (Array.isArray(arc.tree)) {
+        const treeEntry = arc.tree.find(e => e.relativePath === file);
+        if (treeEntry?.excluded) {
+          return res.status(200).json({ success: true, data: { excluded: true, content: null }, error: null });
+        }
+      }
+
       if (isBinary(file)) return res.status(200).json({ success: true, data: { binary: true, content: null }, error: null });
 
+      // Basic snapshots store files as base64 in arc.files
+      // Ultra snapshots store content in arc.chunks.bin — reconstruct from there
+      let contentBuf = null;
       const b64 = arc.files?.[file];
-      if (!b64) return res.status(404).json({ success: false, data: null, error: "File content missing in archive" });
+      if (b64) {
+        contentBuf = Buffer.from(b64, "base64");
+      } else {
+        contentBuf = await extractFromChunks(arc, file);
+      }
 
-      const content = Buffer.from(b64, "base64").toString("utf8");
-      if (content.includes("\0")) return res.status(200).json({ success: true, data: { binary: true, content: null }, error: null });
+      if (!contentBuf) return res.status(404).json({ success: false, data: null, error: "File content missing in archive" });
 
-      return res.status(200).json({ success: true, data: { binary: false, content }, error: null });
+      // Images: return as base64 data URL for browser display
+      if (isImage(file)) {
+        const ext  = getExt(file);
+        const mime = ext === "svg" ? "image/svg+xml" : ext === "ico" ? "image/x-icon" : `image/${ext}`;
+        return res.status(200).json({ success: true, data: { image: true, mime, content: contentBuf.toString("base64") }, error: null });
+      }
+
+      if (contentBuf.includes(0)) return res.status(200).json({ success: true, data: { binary: true, content: null }, error: null });
+
+      return res.status(200).json({ success: true, data: { binary: false, content: contentBuf.toString("utf8") }, error: null });
     } catch (err) {
       if (err.message === "no_token") return res.status(403).json({ success: false, data: null, error: "Google Drive not connected" });
       return res.status(500).json({ success: false, data: null, error: "Failed to read file" });

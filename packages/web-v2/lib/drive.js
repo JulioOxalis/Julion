@@ -10,7 +10,7 @@ export function getGoogleOAuthClient() {
 }
 
 export const DRIVE_SCOPES = [
-  "https://www.googleapis.com/auth/drive.file",
+  "https://www.googleapis.com/auth/drive",
   "openid",
   "email",
   "profile",

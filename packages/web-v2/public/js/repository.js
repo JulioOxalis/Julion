@@ -8,9 +8,7 @@ let allSnapshots = [];
 let currentSnap  = params.get("snapshot") || null;
 let treeData     = null;
 let currentPath  = "";
-let monacoEditor = null;
-let monacoLoaded = false;
-let currentFile  = null;
+let currentFile = null;
 
 // ── File icons ────────────────────────────────────────────────────────────────
 const EXT_ICONS = {
@@ -44,7 +42,8 @@ function detectLang(filename) {
   })[ext] || "plaintext";
 }
 
-const BINARY_RE = /\.(png|jpg|jpeg|gif|ico|webp|bmp|pdf|zip|tar|gz|7z|rar|exe|dll|wasm|mp3|mp4|wav|ogg|ttf|woff|woff2)$/i;
+const IMAGE_RE  = /\.(png|jpg|jpeg|gif|ico|webp|bmp|svg)$/i;
+const BINARY_RE = /\.(pdf|zip|tar|gz|7z|rar|exe|dll|wasm|mp3|mp4|wav|ogg|ttf|woff|woff2)$/i;
 
 // ── File table builder ────────────────────────────────────────────────────────
 function getItemsAtPath(files, path) {
@@ -100,52 +99,58 @@ function renderPathBar(path) {
   return crumbs;
 }
 
-// ── Monaco ────────────────────────────────────────────────────────────────────
-function loadMonaco() {
-  if (monacoLoaded) return Promise.resolve();
-  monacoLoaded = true;
-  return new Promise((resolve) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js";
-    s.onload = () => {
-      require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs" } });
-      require(["vs/editor/editor.main"], resolve);
-    };
-    document.head.appendChild(s);
-  });
-}
-
-async function openInMonaco(filename) {
-  const statusEl = document.getElementById("editor-status");
+// ── Simple text editor ────────────────────────────────────────────────────────
+async function openEditor(filename) {
+  const statusEl  = document.getElementById("editor-status");
+  const container = document.getElementById("monaco-container");
   document.getElementById("editor-path").textContent = filename;
   document.getElementById("editor-modal").classList.add("editor-open");
   document.getElementById("editor-save-btn").disabled = true;
   statusEl.textContent = "Loading…";
+  container.innerHTML = "";
+
   try {
     const res  = await fetch(`/api/files?repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}&file=${encodeURIComponent(filename)}`);
     const json = await res.json();
-    if (!json.success || json.data.binary) {
-      statusEl.textContent = json.data?.binary ? "Binary file — cannot edit" : (json.error || "Error loading file");
+    if (!json.success) { statusEl.textContent = json.error || "Error loading file"; return; }
+
+    const d = json.data;
+
+    if (d.excluded) {
+      container.innerHTML = `<div class="editor-notice">🔒 This file is excluded for security (environment file — content not stored in snapshot)</div>`;
+      statusEl.textContent = "Excluded";
       return;
     }
-    await loadMonaco();
-    currentFile = filename;
-    const container = document.getElementById("monaco-container");
-    if (monacoEditor) {
-      monacoEditor.getModel()?.dispose();
-      monacoEditor.setModel(monaco.editor.createModel(json.data.content, detectLang(filename)));
-    } else {
-      monacoEditor = monaco.editor.create(container, {
-        value: json.data.content,
-        language: detectLang(filename),
-        theme: "vs-dark",
-        fontSize: 13,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        automaticLayout: true,
-      });
-      monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveFile);
+
+    if (d.image) {
+      container.innerHTML = `<div class="editor-image-wrap"><img src="data:${d.mime};base64,${d.content}" alt="${esc(filename)}" class="editor-image"/></div>`;
+      statusEl.textContent = "Image";
+      return;
     }
+
+    if (d.binary) {
+      container.innerHTML = `<div class="editor-notice">Binary file — cannot display</div>`;
+      statusEl.textContent = "Binary";
+      return;
+    }
+
+    currentFile = filename;
+    const ta = document.createElement("textarea");
+    ta.id        = "editor-textarea";
+    ta.className = "editor-textarea";
+    ta.value     = d.content;
+    ta.spellcheck = false;
+    ta.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const s = ta.selectionStart, end = ta.selectionEnd;
+        ta.value = ta.value.slice(0, s) + "  " + ta.value.slice(end);
+        ta.selectionStart = ta.selectionEnd = s + 2;
+      }
+    });
+    container.appendChild(ta);
+    ta.focus();
     statusEl.textContent = "Ready";
     document.getElementById("editor-save-btn").disabled = false;
   } catch {
@@ -155,11 +160,13 @@ async function openInMonaco(filename) {
 
 function closeEditor() {
   document.getElementById("editor-modal").classList.remove("editor-open");
+  document.getElementById("monaco-container").innerHTML = "";
   currentFile = null;
 }
 
 async function saveFile() {
-  if (!currentFile || !monacoEditor) return;
+  const ta = document.getElementById("editor-textarea");
+  if (!currentFile || !ta) return;
   const statusEl = document.getElementById("editor-status");
   const saveBtn  = document.getElementById("editor-save-btn");
   saveBtn.disabled = true;
@@ -168,7 +175,7 @@ async function saveFile() {
     const res  = await fetch("/api/files", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repo: repoName, snapshot: currentSnap, file: currentFile, content: monacoEditor.getValue() }),
+      body: JSON.stringify({ repo: repoName, snapshot: currentSnap, file: currentFile, content: ta.value }),
     });
     const json = await res.json();
     statusEl.textContent = json.success ? "Saved ✓" : ("Error: " + (json.error || "unknown"));
@@ -218,9 +225,10 @@ function renderMainContent() {
           <span class="gh-snap-label">Snapshot</span>
           <select class="gh-snap-select" id="snap-selector">${snapOpts}</select>
         </div>
-        <button class="gh-action-btn" id="verify-btn" title="Verify checksums">🔒 Verify</button>
-        <button class="gh-action-btn" id="compare-btn" title="Compare snapshots" ${allSnapshots.length < 2 ? "disabled" : ""}>⚡ Compare</button>
-        <button class="gh-action-btn gh-action-terminal" id="open-terminal-btn" title="Terminal (Ctrl+\`)">⌘</button>
+        <button class="gh-action-btn" id="download-btn" title="Download .on snapshot">&#11015; Download</button>
+        <button class="gh-action-btn" id="verify-btn" title="Verify checksums">&#128274; Verify</button>
+        <button class="gh-action-btn" id="compare-btn" title="Compare snapshots" ${allSnapshots.length < 2 ? "disabled" : ""}>&#9889; Compare</button>
+        <button class="gh-action-btn gh-action-terminal" id="open-terminal-btn" title="Terminal (Ctrl+\`)">&#8984;</button>
       </div>
     </div>
 
@@ -285,6 +293,9 @@ function renderMainContent() {
     row.click();
   });
 
+  document.getElementById("download-btn")?.addEventListener("click", () => {
+    window.location.href = `/api/snapshot?action=download&repo=${encodeURIComponent(repoName)}&snapshot=${encodeURIComponent(currentSnap)}`;
+  });
   document.getElementById("verify-btn")?.addEventListener("click", openVerifyModal);
   document.getElementById("compare-btn")?.addEventListener("click", openCompareModal);
   document.getElementById("open-terminal-btn")?.addEventListener("click", toggleTerminal);
@@ -368,7 +379,7 @@ function handleFileOpen(filename) {
     setTimeout(() => notice?.remove(), 3000);
     return;
   }
-  openInMonaco(filename);
+  openEditor(filename);
 }
 
 // ── Compare modal ─────────────────────────────────────────────────────────────
@@ -459,6 +470,8 @@ function toggleTerminal() {
   const panel = document.getElementById("terminal-panel");
   const open  = panel.classList.toggle("open");
   panel.setAttribute("aria-hidden", String(!open));
+  const btn = document.querySelector("[data-action=toggle-terminal]");
+  if (btn) { btn.classList.toggle("sidebar-terminal-btn--active", open); btn.blur(); }
   if (open) document.getElementById("terminal-input")?.focus();
 }
 

@@ -1,9 +1,12 @@
 {
   "name": "julion-cloud-google-drive",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Google Drive adapter for Julion CLI authentication and file sync.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

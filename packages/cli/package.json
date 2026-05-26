@@ -1,12 +1,15 @@
 {
-  "name": "julion-cli",
-  "version": "0.1.0",
+  "name": "julion",
+  "version": "0.1.6",
   "description": "Julion CLI for project snapshots, restore, and cloud sync.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "julion": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js"
@@ -14,9 +17,9 @@
   "dependencies": {
     "commander": "^11.0.0",
     "julion-core": "^0.1.0",
-    "julion-engine-snapshot": "^0.1.0",
+    "julion-engine-snapshot": "^0.1.6",
     "julion-engine-restore": "^0.1.0",
-    "julion-cloud-google-drive": "^0.1.0",
+    "julion-cloud-google-drive": "^0.1.5",
     "julion-adapters": "^0.1.0"
   },
   "publishConfig": {

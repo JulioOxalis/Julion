@@ -86,7 +86,7 @@ async function saveToken(token: unknown, user?: { email: string; name?: string }
   await fs.writeFile(TOKEN_PATH, JSON.stringify(payload, null, 2), 'utf8');
 
   if (user?.email) {
-    await saveUserDriveToken(user.email, token);
+    try { await saveUserDriveToken(user.email, token); } catch { /* no local DB — token saved to file */ }
   }
 }
 
@@ -99,10 +99,10 @@ async function loadToken(): Promise<Record<string, unknown> | null> {
 
   const userEmail = (filePayload as StoredTokenFile | null)?.user_email;
   if (userEmail) {
-    const fromDb = await loadUserDriveToken(userEmail);
-    if (fromDb) {
-      return fromDb;
-    }
+    try {
+      const fromDb = await loadUserDriveToken(userEmail);
+      if (fromDb) return fromDb;
+    } catch { /* no local DB */ }
   }
 
   return null;
@@ -195,27 +195,40 @@ export async function authenticate() {
 export async function authenticateViaWebsite() {
   const env = await loadMergedEnv();
   const sessionId = createSessionId();
-  await createAuthSession(sessionId);
 
   const baseUrl = resolveWebsiteAuthUrl(env);
   const url = new URL(baseUrl);
-  url.searchParams.set('session', sessionId);
+  url.searchParams.set('cli_session', sessionId);
 
-  console.log('Step 1: Opening your Julion login page in the browser...');
+  console.log('Opening Julion login in your browser...');
   console.log(url.toString());
   openUrl(url.toString());
   console.log('');
-  console.log('Step 2: Sign in with Google and approve Drive access.');
-  console.log('Step 3: When the page says you can return to VS Code, come back here.');
+  console.log('Sign in with Google and approve Drive access.');
+  console.log('Come back here when the browser says login is complete.');
   console.log('');
-  console.log('Waiting for login to complete...');
+  console.log('Waiting for login...');
 
   const result = await waitForAuthSession(sessionId);
+
+  // Persist OAuth client credentials so Drive operations work without env vars
+  if (result.google_config?.client_id && result.google_config?.client_secret) {
+    await ensureStorageDirectory();
+    const credPath = path.join(STORAGE_DIR, 'google-client.json');
+    await fs.writeFile(credPath, JSON.stringify({
+      web: {
+        client_id:     result.google_config.client_id,
+        client_secret: result.google_config.client_secret,
+        redirect_uris: [result.google_config.redirect_uri || ''],
+      }
+    }, null, 2), 'utf8');
+  }
+
   await saveToken(result.token, { email: result.user_email, name: result.user_name });
 
-  console.log(`Logged in as ${result.user_name} (${result.user_email}).`);
+  console.log(`\nLogged in as ${result.user_name} (${result.user_email}).`);
   console.log('Google Drive is ready. You can now run:');
-  console.log('  julion save --ultra --push --repository my-repo');
+  console.log('  julion seal --ultra --deposit --repository my-project');
 }
 
 export async function uploadSnapshot(snapshotPath: string, repositoryName?: string) {
@@ -223,20 +236,35 @@ export async function uploadSnapshot(snapshotPath: string, repositoryName?: stri
   const rootFolderId = await getOrCreateFolder(drive, ROOT_FOLDER_NAME);
   const repoName = repositoryName || path.basename(snapshotPath, '.on');
   const repoFolderId = await getOrCreateFolder(drive, repoName, rootFolderId);
+  const fileName = path.basename(snapshotPath);
+
+  // Check if a file with the same name already exists — update it instead of creating a duplicate
+  const existingRes = await drive.files.list({
+    q: `name='${escapeQueryValue(fileName)}' and '${repoFolderId}' in parents and trashed=false`,
+    fields: 'files(id,name)',
+    spaces: 'drive'
+  });
+  const existingFile = existingRes.data.files?.[0];
 
   const media = {
     mimeType: 'application/octet-stream',
     body: createReadStream(snapshotPath)
   };
 
-  const response = await drive.files.create({
-    requestBody: {
-      name: path.basename(snapshotPath),
-      parents: [repoFolderId]
-    },
-    media,
-    fields: 'id,name'
-  });
+  let response;
+  if (existingFile?.id) {
+    response = await drive.files.update({
+      fileId: existingFile.id,
+      media,
+      fields: 'id,name'
+    });
+  } else {
+    response = await drive.files.create({
+      requestBody: { name: fileName, parents: [repoFolderId] },
+      media,
+      fields: 'id,name'
+    });
+  }
 
   return {
     fileId: response.data.id,

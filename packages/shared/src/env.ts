@@ -61,16 +61,11 @@ export function resolveWebsiteAuthUrl(env: Record<string, string>): string {
     env.JULION_WEBSITE_AUTH_URL || env.JULION_AUTH_URL || env.JULION_SITE_URL || env.JULION_WEB_URL;
   if (explicit) {
     const trimmed = explicit.replace(/\/$/, '');
-    if (trimmed.endsWith('/auth/google')) {
-      return trimmed;
-    }
-    if (trimmed.includes('/auth/google')) {
-      return trimmed;
-    }
-    return `${trimmed}/auth/google`;
+    if (trimmed.endsWith('/api/auth/google')) return trimmed;
+    if (trimmed.endsWith('/auth/google')) return trimmed.replace(/\/auth\/google$/, '/api/auth/google');
+    return `${trimmed}/api/auth/google`;
   }
-  const port = env.PORT || '3000';
-  return `http://localhost:${port}/auth/google`;
+  return 'https://julion.vercel.app/api/auth/google';
 }
 
 export function resolveGoogleRedirectUri(env: Record<string, string>): string {
@@ -94,8 +89,10 @@ export function resolvePublicBaseUrl(env: Record<string, string>): string {
     if (redirect.endsWith('/auth/google/callback')) {
       return redirect.slice(0, -'/auth/google/callback'.length);
     }
+    if (redirect.endsWith('/api/auth/callback')) {
+      return redirect.slice(0, -'/api/auth/callback'.length);
+    }
     return redirect;
   }
-  const port = env.PORT || '3000';
-  return `http://localhost:${port}`;
+  return 'https://julion.vercel.app';
 }

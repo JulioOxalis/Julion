@@ -3,43 +3,129 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <title>Login Complete · Julion</title>
+  <title>Authenticated · Julion</title>
   <meta name="robots" content="noindex, nofollow"/>
-  <meta name="theme-color" content="#6b7bff"/>
+  <meta name="theme-color" content="#6366f1"/>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png"/>
   <link rel="manifest" href="/manifest.json"/>
   <link rel="stylesheet" href="/styles.css"/>
+  <style>
+    body {
+      background: #07090f;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .auth-card {
+      background: rgba(11,14,26,0.95);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 48px 40px 40px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(56,189,248,0.2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .auth-check {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(56,189,248,0.18));
+      border: 1px solid rgba(99,102,241,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 24px;
+    }
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 0 10px;
+      background: linear-gradient(135deg, #f1f5f9 0%, rgba(241,245,249,0.75) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .auth-subtitle {
+      color: rgba(241,245,249,0.45);
+      font-size: 0.88rem;
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+    .auth-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .auth-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .auth-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .auth-btn-primary {
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+    }
+    .auth-btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(241,245,249,0.7);
+    }
+    .auth-note {
+      margin-top: 28px;
+      font-size: 0.75rem;
+      color: rgba(241,245,249,0.3);
+    }
+    .auth-brand {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      background: linear-gradient(135deg, #818cf8, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 32px;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-<div class="app-shell">
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">JULION</p>
-      <h1>You are connected</h1>
-      <p class="lead">Google Drive access is saved. You can close this tab and return to your terminal.</p>
+  <div class="auth-card">
+    <span class="auth-brand">JULION</span>
+    <div class="auth-check">&#10003;</div>
+    <h1 class="auth-title">You're authenticated</h1>
+    <p class="auth-subtitle">Google Drive access is saved. Return to your terminal — the CLI is ready.</p>
+    <div class="auth-links">
+      <a class="auth-btn auth-btn-primary" href="/dashboard">Open Dashboard</a>
+      <a class="auth-btn auth-btn-secondary" href="/repositories">View Repositories</a>
     </div>
-  </header>
-
-  <main>
-    <section class="card card-primary">
-      <h2>Next step in your terminal</h2>
-      <p>The CLI is waiting for this login. When it confirms, run:</p>
-      <pre class="code-block">julion seal --ultra --deposit --repository my-repo</pre>
-    </section>
-
-    <section class="card card-secondary">
-      <div class="button-row">
-        <a class="button" href="/dashboard">Open dashboard</a>
-        <a class="button button-secondary" href="/">Home</a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="app-footer">
-    <p>Safe to close this window after the CLI confirms login.</p>
-  </footer>
-</div>
+    <p class="auth-note">Safe to close this window after the CLI confirms login.</p>
+  </div>
 </body>
 </html>

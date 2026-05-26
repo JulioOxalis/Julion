@@ -1,9 +1,9 @@
+#!/usr/bin/env node
 import path from 'path';
 import { Command } from 'commander';
 import { buildSnapshot, saveUltra } from 'julion-engine-snapshot';
 import { restoreSnapshot } from 'julion-engine-restore';
 import { authenticate, authenticateViaWebsite, uploadSnapshot, downloadSnapshot } from 'julion-cloud-google-drive';
-import { detectProject as detectAdapter } from 'julion-adapters';
 
 const program = new Command();
 
@@ -32,8 +32,6 @@ program
 
     try {
       if (options.ultra) {
-        const adapter = await detectAdapter(projectRoot);
-        const adapterName = (adapter as any)?.adapterName || 'generic';
         const result = await saveUltra(projectRoot, {
           outputPath: output,
           push: !!options.deposit,
@@ -51,9 +49,7 @@ program
           console.log(`Uploaded to Drive: ${result.upload.link}`);
         }
       } else {
-        const adapter = await detectAdapter(projectRoot);
-        const adapterName = (adapter as any)?.adapterName || 'generic';
-        const archive = await buildSnapshot(projectRoot, output, adapterName);
+        const archive = await buildSnapshot(projectRoot, output, 'generic');
         console.log(`Created snapshot: ${archive}`);
       }
     } catch (error) {
